@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt版本管理器 - 专业版</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/themes.css">
+    
+    <!-- 早期主题应用，避免闪烁 -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('app-theme') || 'auto';
+            const root = document.documentElement;
+            
+            if (savedTheme === 'auto') {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    root.setAttribute('data-theme', 'dark');
+                } else {
+                    root.setAttribute('data-theme', 'light');
+                }
+            } else {
+                root.setAttribute('data-theme', savedTheme);
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">📝</div>
+                    <div class="logo-text">
+                        <h1>Prompt管理器</h1>
+                        <span class="version">专业版 v1.0</span>
+                    </div>
+                </div>
+                
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="搜索Prompt和模板..." />
+                        <button class="search-btn" id="searchBtn">🔍</button>
+                    </div>
+                    <button class="advanced-search-btn" id="advancedSearchBtn">高级搜索</button>
+                </div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" data-tab="prompts">
+                        <span class="tab-icon">💡</span>
+                        <span class="tab-text">Prompt库</span>
+                        <span class="tab-count" id="promptCount">0</span>
+                    </button>
+                    <button class="nav-tab" data-tab="templates">
+                        <span class="tab-icon">📋</span>
+                        <span class="tab-text">模板库</span>
+                        <span class="tab-count" id="templateCount">0</span>
+                    </button>
+                </div>
+                
+                <!-- 批量操作工具栏 -->
+                <div class="bulk-actions-toolbar" id="bulkActionsToolbar" style="display: none;">
+                    <div class="bulk-actions-info">
+                        <span id="selectedCount">0</span> 项已选择
+                    </div>
+                    <div class="bulk-actions-buttons">
+                        <button class="btn btn-sm btn-error" id="bulkDeleteBtn">
+                            <span class="btn-icon">🗑️</span>
+                            批量删除
+                        </button>
+                        <button class="btn btn-sm btn-secondary" id="bulkCancelBtn">
+                            取消选择
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-content">
+                <div id="promptsList" class="tab-content active">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>正在加载Prompt...</p>
+                    </div>
+                </div>
+                <div id="templatesList" class="tab-content">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>正在加载模板...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="action-btn primary" id="newPromptBtn">
+                    <span class="btn-icon">➕</span>
+                    新建Prompt
+                </button>
+                <button class="action-btn secondary" id="newTemplateBtn">
+                    <span class="btn-icon">📄</span>
+                    新建模板
+                </button>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="content-header">
+                <div class="header-left">
+                    <h2 id="contentTitle">欢迎使用Prompt版本管理器</h2>
+                    <div class="breadcrumb" id="breadcrumb"></div>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="icon-btn" id="statsBtn" title="统计信息">📊</button>
+                        <button class="icon-btn" id="settingsBtn" title="设置">⚙️</button>
+                        <div class="dropdown">
+                            <button class="icon-btn dropdown-toggle" id="exportBtn" title="导出">📤</button>
+                            <div class="dropdown-menu">
+                                <a href="#" id="exportAllBtn">导出全部数据</a>
+                                <a href="#" id="exportTemplatesBtn">导出模板库</a>
+                                <a href="#" id="importBtn">导入数据</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-body">
+                <!-- 欢迎页面 -->
+                <div id="welcomeView" class="welcome-view">
+                    <div class="welcome-hero">
+                        <div class="hero-icon">🚀</div>
+                        <h1>专业的Prompt版本管理解决方案</h1>
+                        <p>智能版本控制 • 模板复用 • 全文搜索 • 数据导出</p>
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🔄</div>
+                            <h3>自动版本控制</h3>
+                            <p>每次修改自动创建版本，支持版本对比和回滚</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📋</div>
+                            <h3>模板系统</h3>
+                            <p>将常用Prompt保存为模板，提高工作效率</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔍</div>
+                            <h3>智能搜索</h3>
+                            <p>全文搜索，支持标签筛选和高级搜索</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">💾</div>
+                            <h3>数据安全</h3>
+                            <p>本地存储，支持导出备份，数据完全可控</p>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-actions">
+                        <button class="btn btn-primary btn-large" id="getStartedBtn">
+                            <span class="btn-icon">✨</span>
+                            开始使用
+                        </button>
+                        <button class="btn btn-secondary btn-large" id="importDataBtn">
+                            <span class="btn-icon">📥</span>
+                            导入现有数据
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Prompt详情页面 -->
+                <div id="promptView" class="detail-view" style="display: none;">
+                    <!-- 内容将通过JavaScript动态加载 -->
+                </div>
+
+                <!-- 模板详情页面 -->
+                <div id="templateView" class="detail-view" style="display: none;">
+                    <!-- 内容将通过JavaScript动态加载 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框容器 -->
+    <div id="modalContainer"></div>
+    
+    <!-- 通知容器 -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- 脚本文件 -->
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/api.js"></script>
+    <script src="scripts/components.js"></script>
+    <script src="scripts/app.js"></script>
+</body>
+</html>
