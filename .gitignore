@@ -3,7 +3,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
+.kiro/
+IMPLEMENTATION_STATUS.md
 # Build outputs
 dist/
 build/
