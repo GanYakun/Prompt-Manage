@@ -170,9 +170,17 @@ class TemplateRepository extends BaseRepository {
       }
     }
     
+    let categories = null;
+    try {
+      categories = templateRow.categories ? JSON.parse(templateRow.categories) : null;
+    } catch (error) {
+      console.warn('Failed to parse template categories:', templateRow.categories, error);
+    }
+    
     return {
       ...templateRow,
       tags: tags,
+      categories: categories,
       createdAt: templateRow.created_at,
       updatedAt: templateRow.updated_at,
       usageCount: templateRow.usage_count || 0

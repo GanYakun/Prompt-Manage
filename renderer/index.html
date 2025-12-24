@@ -28,9 +28,9 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- 侧边栏 -->
-        <div class="sidebar">
-            <div class="sidebar-header">
+        <!-- 左侧分类面板 -->
+        <div class="category-panel">
+            <div class="category-header">
                 <div class="logo">
                     <div class="logo-icon">📝</div>
                     <div class="logo-text">
@@ -48,7 +48,7 @@
                 </div>
             </div>
             
-            <div class="sidebar-nav">
+            <div class="category-nav">
                 <div class="nav-tabs">
                     <button class="nav-tab active" data-tab="prompts">
                         <span class="tab-icon">💡</span>
@@ -62,39 +62,23 @@
                     </button>
                 </div>
                 
-                <!-- 批量操作工具栏 -->
-                <div class="bulk-actions-toolbar" id="bulkActionsToolbar" style="display: none;">
-                    <div class="bulk-actions-info">
-                        <span id="selectedCount">0</span> 项已选择
+                <!-- 分类筛选器 -->
+                <div class="category-filter" id="categoryFilter">
+                    <div class="filter-header">
+                        <span class="filter-title">分类筛选</span>
+                        <button class="filter-clear" id="clearCategoryFilter" title="清除筛选">✕</button>
                     </div>
-                    <div class="bulk-actions-buttons">
-                        <button class="btn btn-sm btn-error" id="bulkDeleteBtn">
-                            <span class="btn-icon">🗑️</span>
-                            批量删除
-                        </button>
-                        <button class="btn btn-sm btn-secondary" id="bulkCancelBtn">
-                            取消选择
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="sidebar-content">
-                <div id="promptsList" class="tab-content active">
-                    <div class="loading-spinner">
-                        <div class="spinner"></div>
-                        <p>正在加载Prompt...</p>
-                    </div>
-                </div>
-                <div id="templatesList" class="tab-content">
-                    <div class="loading-spinner">
-                        <div class="spinner"></div>
-                        <p>正在加载模板...</p>
+                    <div class="category-list" id="categoryList">
+                        <div class="category-item active" data-category="all">
+                            <span class="category-icon">📁</span>
+                            <span class="category-name">全部</span>
+                            <span class="category-count" id="allCount">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="sidebar-footer">
+            <div class="category-actions">
                 <button class="action-btn primary" id="newPromptBtn">
                     <span class="btn-icon">➕</span>
                     新建Prompt
@@ -106,9 +90,67 @@
             </div>
         </div>
 
-        <!-- 主内容区 -->
-        <div class="main-content">
-            <div class="content-header">
+        <!-- 中间列表面板 -->
+        <div class="list-panel">
+            <div class="list-header">
+                <div class="list-title">
+                    <h3 id="listTitle">全部Prompt</h3>
+                    <span class="list-count" id="listCount">0 项</span>
+                </div>
+                <div class="list-actions">
+                    <div class="view-mode-buttons">
+                        <button class="icon-btn active" id="listViewBtn" title="列表视图">📋</button>
+                        <button class="icon-btn" id="gridViewBtn" title="网格视图">⊞</button>
+                    </div>
+                    <div class="dropdown">
+                        <button class="icon-btn dropdown-toggle" id="sortBtn" title="排序">
+                            ↕️<span class="sort-indicator">↓</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="#" data-sort="updated_at" class="active">按更新时间</a>
+                            <a href="#" data-sort="created_at">按创建时间</a>
+                            <a href="#" data-sort="title">按标题</a>
+                            <a href="#" data-sort="usage_count">按使用次数</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 批量操作工具栏 -->
+            <div class="bulk-actions-toolbar" id="bulkActionsToolbar" style="display: none;">
+                <div class="bulk-actions-info">
+                    <span id="selectedCount">0</span> 项已选择
+                </div>
+                <div class="bulk-actions-buttons">
+                    <button class="btn btn-sm btn-error" id="bulkDeleteBtn">
+                        <span class="btn-icon">🗑️</span>
+                        批量删除
+                    </button>
+                    <button class="btn btn-sm btn-secondary" id="bulkCancelBtn">
+                        取消选择
+                    </button>
+                </div>
+            </div>
+            
+            <div class="list-content">
+                <div id="promptsList" class="item-list active">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>正在加载Prompt...</p>
+                    </div>
+                </div>
+                <div id="templatesList" class="item-list">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>正在加载模板...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧详情面板 -->
+        <div class="detail-panel">
+            <div class="detail-header">
                 <div class="header-left">
                     <h2 id="contentTitle">欢迎使用Prompt版本管理器</h2>
                     <div class="breadcrumb" id="breadcrumb"></div>
@@ -129,13 +171,13 @@
                 </div>
             </div>
             
-            <div class="content-body">
+            <div class="detail-content">
                 <!-- 欢迎页面 -->
                 <div id="welcomeView" class="welcome-view">
                     <div class="welcome-hero">
                         <div class="hero-icon">🚀</div>
                         <h1>专业的Prompt版本管理解决方案</h1>
-                        <p>智能版本控制 • 模板复用 • 全文搜索 • 数据导出</p>
+                        <p>智能版本控制 • 模板复用 • 分类管理 • 数据导出</p>
                     </div>
                     
                     <div class="feature-grid">
@@ -150,9 +192,9 @@
                             <p>将常用Prompt保存为模板，提高工作效率</p>
                         </div>
                         <div class="feature-card">
-                            <div class="feature-icon">🔍</div>
-                            <h3>智能搜索</h3>
-                            <p>全文搜索，支持标签筛选和高级搜索</p>
+                            <div class="feature-icon">🏷️</div>
+                            <h3>分类管理</h3>
+                            <p>按行业、用途、难度等维度分类管理</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon">💾</div>

@@ -57,6 +57,7 @@ class DatabaseManager {
         title TEXT NOT NULL,
         content TEXT NOT NULL,
         tags TEXT,
+        categories TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         current_version_id TEXT,
@@ -86,6 +87,7 @@ class DatabaseManager {
         content TEXT NOT NULL,
         description TEXT,
         tags TEXT,
+        categories TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         usage_count INTEGER DEFAULT 0

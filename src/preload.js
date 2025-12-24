@@ -14,7 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showOpenDialog: (options) => ipcRenderer.invoke('show-open-dialog', options),
 
   // Prompt management
-  createPrompt: (title, content, tags, note) => ipcRenderer.invoke('create-prompt', title, content, tags, note),
+  createPrompt: (title, content, tags, note, categories) => ipcRenderer.invoke('create-prompt', title, content, tags, note, categories),
   updatePrompt: (promptId, updates, note) => ipcRenderer.invoke('update-prompt', promptId, updates, note),
   getPrompt: (promptId) => ipcRenderer.invoke('get-prompt', promptId),
   getAllPrompts: (limit, offset) => ipcRenderer.invoke('get-all-prompts', limit, offset),
@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   rollbackToVersion: (promptId, targetVersionId, note) => ipcRenderer.invoke('rollback-to-version', promptId, targetVersionId, note),
 
   // Template management
-  createTemplate: (name, content, description, tags) => ipcRenderer.invoke('create-template', name, content, description, tags),
+  createTemplate: (name, content, description, tags, categories) => ipcRenderer.invoke('create-template', name, content, description, tags, categories),
   createTemplateFromPrompt: (promptId, name, description, additionalTags) => ipcRenderer.invoke('create-template-from-prompt', promptId, name, description, additionalTags),
   updateTemplate: (templateId, updates) => ipcRenderer.invoke('update-template', templateId, updates),
   getTemplate: (templateId) => ipcRenderer.invoke('get-template', templateId),

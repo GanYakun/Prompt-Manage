@@ -11,9 +11,9 @@ class API {
     }
 
     // Prompt相关API
-    async createPrompt(title, content, tags = [], note = '初始版本') {
+    async createPrompt(title, content, tags = [], note = '初始版本', categories = null) {
         if (!this.electronAPI) throw new Error('Electron API不可用');
-        return await this.electronAPI.createPrompt(title, content, tags, note);
+        return await this.electronAPI.createPrompt(title, content, tags, note, categories);
     }
 
     async updatePrompt(promptId, updates, note = null) {
@@ -58,9 +58,9 @@ class API {
     }
 
     // 模板相关API
-    async createTemplate(name, content, description = '', tags = []) {
+    async createTemplate(name, content, description = '', tags = [], categories = null) {
         if (!this.electronAPI) throw new Error('Electron API不可用');
-        return await this.electronAPI.createTemplate(name, content, description, tags);
+        return await this.electronAPI.createTemplate(name, content, description, tags, categories);
     }
 
     async createTemplateFromPrompt(promptId, name, description = '', additionalTags = []) {

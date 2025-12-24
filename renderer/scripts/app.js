@@ -15,7 +15,75 @@ class PromptManagerApp {
         this.bulkSelectionMode = false;
         this.selectedItems = new Set();
         
+        // 视图和排序状态
+        this.currentViewMode = 'list'; // 'list' 或 'grid'
+        this.currentSortBy = 'updated_at'; // 排序字段
+        this.currentSortOrder = 'desc'; // 'asc' 或 'desc'
+        
+        // 分类系统
+        this.currentCategoryFilter = 'all';
+        this.categories = this.initializeCategories();
+        
         this.init();
+    }
+
+    // 初始化分类系统
+    initializeCategories() {
+        return {
+            // 按行业分类
+            industry: {
+                name: '行业应用',
+                icon: '🏢',
+                items: {
+                    'tech': { name: '科技互联网', icon: '💻', color: '#3b82f6' },
+                    'education': { name: '教育培训', icon: '📚', color: '#10b981' },
+                    'marketing': { name: '市场营销', icon: '📈', color: '#f59e0b' },
+                    'finance': { name: '金融投资', icon: '💰', color: '#8b5cf6' },
+                    'healthcare': { name: '医疗健康', icon: '🏥', color: '#ef4444' },
+                    'legal': { name: '法律咨询', icon: '⚖️', color: '#6b7280' },
+                    'creative': { name: '创意设计', icon: '🎨', color: '#ec4899' },
+                    'retail': { name: '零售电商', icon: '🛍️', color: '#06b6d4' }
+                }
+            },
+            // 按用途分类
+            purpose: {
+                name: '用途类型',
+                icon: '🎯',
+                items: {
+                    'writing': { name: '内容写作', icon: '✍️', color: '#10b981' },
+                    'analysis': { name: '数据分析', icon: '📊', color: '#3b82f6' },
+                    'translation': { name: '翻译润色', icon: '🌐', color: '#8b5cf6' },
+                    'coding': { name: '编程开发', icon: '💻', color: '#f59e0b' },
+                    'brainstorm': { name: '头脑风暴', icon: '💡', color: '#ec4899' },
+                    'research': { name: '研究调研', icon: '🔍', color: '#06b6d4' },
+                    'planning': { name: '规划策略', icon: '📋', color: '#ef4444' },
+                    'communication': { name: '沟通协调', icon: '💬', color: '#6b7280' }
+                }
+            },
+            // 按难度分类
+            difficulty: {
+                name: '复杂程度',
+                icon: '📊',
+                items: {
+                    'basic': { name: '基础入门', icon: '🟢', color: '#10b981' },
+                    'intermediate': { name: '中级进阶', icon: '🟡', color: '#f59e0b' },
+                    'advanced': { name: '高级专业', icon: '🔴', color: '#ef4444' }
+                }
+            },
+            // 按格式分类
+            format: {
+                name: '输出格式',
+                icon: '📄',
+                items: {
+                    'text': { name: '纯文本', icon: '📝', color: '#6b7280' },
+                    'list': { name: '列表格式', icon: '📋', color: '#3b82f6' },
+                    'table': { name: '表格数据', icon: '📊', color: '#10b981' },
+                    'code': { name: '代码片段', icon: '💻', color: '#8b5cf6' },
+                    'json': { name: 'JSON数据', icon: '🔧', color: '#f59e0b' },
+                    'markdown': { name: 'Markdown', icon: '📄', color: '#ec4899' }
+                }
+            }
+        };
     }
 
     async init() {
@@ -328,6 +396,68 @@ class PromptManagerApp {
             }
         });
         
+        // 添加列表项点击事件委托
+        document.addEventListener('click', (e) => {
+            const listItem = e.target.closest('.list-item');
+            if (listItem && listItem.dataset.itemId) {
+                // 如果点击的是操作按钮，不处理
+                if (e.target.closest('.item-actions')) {
+                    return;
+                }
+                
+                const itemId = listItem.dataset.itemId;
+                const itemType = listItem.dataset.itemType;
+                
+                if (this.bulkSelectionMode) {
+                    this.toggleItemSelection(itemId);
+                } else {
+                    if (itemType === 'prompt') {
+                        this.selectPrompt(itemId);
+                    } else if (itemType === 'template') {
+                        this.selectTemplate(itemId);
+                    }
+                }
+            }
+        });
+        
+        // 视图切换按钮
+        const listViewBtn = document.getElementById('listViewBtn');
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        
+        if (listViewBtn) {
+            listViewBtn.addEventListener('click', () => this.switchViewMode('list'));
+        }
+        
+        if (gridViewBtn) {
+            gridViewBtn.addEventListener('click', () => this.switchViewMode('grid'));
+        }
+        
+        // 排序功能
+        const sortBtn = document.getElementById('sortBtn');
+        const sortDropdown = sortBtn?.closest('.dropdown');
+        
+        if (sortBtn && sortDropdown) {
+            sortBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleSortDropdown();
+            });
+            
+            // 排序选项点击
+            sortDropdown.addEventListener('click', (e) => {
+                const sortOption = e.target.closest('[data-sort]');
+                if (sortOption) {
+                    e.preventDefault();
+                    const sortBy = sortOption.dataset.sort;
+                    this.setSortBy(sortBy);
+                }
+            });
+        }
+        
+        // 点击其他地方关闭下拉菜单
+        document.addEventListener('click', () => {
+            this.closeSortDropdown();
+        });
+        
         console.log('事件绑定完成');
     }
 
@@ -339,12 +469,326 @@ class PromptManagerApp {
                 this.loadTemplates()
             ]);
             
-            // 更新计数
+            // 更新计数和分类
             this.updateCounts();
+            this.initializeCategoryFilter();
+            
+            // 初始化用户偏好设置
+            this.initializeUserPreferences();
             
         } catch (error) {
             console.error('加载初始数据失败:', error);
         }
+    }
+
+    // 初始化分类筛选器
+    initializeCategoryFilter() {
+        const categoryList = document.getElementById('categoryList');
+        if (!categoryList) return;
+
+        // 清空现有内容，保留"全部"选项
+        const allItem = categoryList.querySelector('[data-category="all"]');
+        categoryList.innerHTML = '';
+        if (allItem) {
+            categoryList.appendChild(allItem);
+        }
+
+        // 添加各个分类
+        Object.entries(this.categories).forEach(([categoryType, categoryData]) => {
+            // 添加分类组标题
+            const groupHeader = document.createElement('div');
+            groupHeader.className = 'category-group-header';
+            groupHeader.innerHTML = `
+                <span class="category-group-icon">${categoryData.icon}</span>
+                <span class="category-group-name">${categoryData.name}</span>
+            `;
+            categoryList.appendChild(groupHeader);
+
+            // 添加分类项
+            Object.entries(categoryData.items).forEach(([key, item]) => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                categoryItem.dataset.category = `${categoryType}:${key}`;
+                categoryItem.innerHTML = `
+                    <span class="category-icon">${item.icon}</span>
+                    <span class="category-name">${item.name}</span>
+                    <span class="category-count" id="count-${categoryType}-${key}">0</span>
+                `;
+                categoryList.appendChild(categoryItem);
+            });
+        });
+
+        // 绑定分类筛选事件
+        this.bindCategoryEvents();
+        
+        // 更新分类计数
+        this.updateCategoryCounts();
+    }
+
+    // 绑定分类相关事件
+    bindCategoryEvents() {
+        const categoryList = document.getElementById('categoryList');
+        const clearFilter = document.getElementById('clearCategoryFilter');
+
+        if (categoryList) {
+            categoryList.addEventListener('click', (e) => {
+                const categoryItem = e.target.closest('.category-item');
+                if (categoryItem && categoryItem.dataset.category) {
+                    this.filterByCategory(categoryItem.dataset.category);
+                }
+            });
+        }
+
+        if (clearFilter) {
+            clearFilter.addEventListener('click', () => {
+                this.clearCategoryFilter();
+            });
+        }
+    }
+
+    // 按分类筛选
+    filterByCategory(category) {
+        this.currentCategoryFilter = category;
+        
+        // 更新UI状态
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const activeItem = document.querySelector(`[data-category="${category}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+
+        // 应用筛选
+        this.applyCurrentFilters();
+    }
+
+    // 清除分类筛选
+    clearCategoryFilter() {
+        this.currentCategoryFilter = 'all';
+        
+        // 更新UI状态
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const allItem = document.querySelector('[data-category="all"]');
+        if (allItem) {
+            allItem.classList.add('active');
+        }
+
+        // 应用筛选
+        this.applyCurrentFilters();
+    }
+
+    // 应用当前筛选条件
+    applyCurrentFilters() {
+        if (this.currentTab === 'prompts') {
+            this.renderFilteredPrompts();
+        } else if (this.currentTab === 'templates') {
+            this.renderFilteredTemplates();
+        }
+    }
+
+    // 渲染筛选后的Prompt列表
+    renderFilteredPrompts() {
+        const container = document.getElementById('promptsList');
+        if (!container) return;
+
+        let filteredPrompts = this.prompts;
+
+        // 应用分类筛选
+        if (this.currentCategoryFilter !== 'all') {
+            filteredPrompts = this.filterItemsByCategory(filteredPrompts, this.currentCategoryFilter);
+        }
+
+        // 应用排序
+        filteredPrompts = this.sortItems(filteredPrompts);
+
+        // 更新列表标题和计数
+        this.updateListTitle('Prompt', filteredPrompts.length);
+
+        if (filteredPrompts.length === 0) {
+            this.showEmptyState('promptsList', '没有找到匹配的Prompt', '尝试调整筛选条件或创建新的Prompt', [
+                { text: '创建Prompt', action: () => this.createNewPrompt(), primary: true },
+                { text: '清除筛选', action: () => this.clearCategoryFilter() }
+            ]);
+            return;
+        }
+
+        container.innerHTML = filteredPrompts.map(prompt => this.renderPromptItem(prompt)).join('');
+    }
+
+    // 渲染筛选后的模板列表
+    renderFilteredTemplates() {
+        const container = document.getElementById('templatesList');
+        if (!container) return;
+
+        let filteredTemplates = this.templates;
+
+        // 应用分类筛选
+        if (this.currentCategoryFilter !== 'all') {
+            filteredTemplates = this.filterItemsByCategory(filteredTemplates, this.currentCategoryFilter);
+        }
+
+        // 应用排序
+        filteredTemplates = this.sortItems(filteredTemplates);
+
+        // 更新列表标题和计数
+        this.updateListTitle('模板', filteredTemplates.length);
+
+        if (filteredTemplates.length === 0) {
+            this.showEmptyState('templatesList', '没有找到匹配的模板', '尝试调整筛选条件或创建新的模板', [
+                { text: '创建模板', action: () => this.createNewTemplate(), primary: true },
+                { text: '清除筛选', action: () => this.clearCategoryFilter() }
+            ]);
+            return;
+        }
+
+        container.innerHTML = filteredTemplates.map(template => this.renderTemplateItem(template)).join('');
+    }
+
+    // 更新列表标题和计数
+    updateListTitle(type, count) {
+        const listTitle = document.getElementById('listTitle');
+        const listCount = document.getElementById('listCount');
+        
+        if (listTitle) {
+            let title = `全部${type}`;
+            if (this.currentCategoryFilter !== 'all') {
+                const [categoryType, categoryKey] = this.currentCategoryFilter.split(':');
+                const categoryData = this.categories[categoryType];
+                if (categoryData && categoryData.items[categoryKey]) {
+                    title = `${categoryData.items[categoryKey].name} - ${type}`;
+                }
+            }
+            listTitle.textContent = title;
+        }
+        
+        if (listCount) {
+            listCount.textContent = `${count} 项`;
+        }
+    }
+
+    // 按分类筛选项目
+    filterItemsByCategory(items, categoryFilter) {
+        if (categoryFilter === 'all') return items;
+
+        const [categoryType, categoryKey] = categoryFilter.split(':');
+        
+        return items.filter(item => {
+            // 检查项目是否有分类信息
+            if (!item.categories) return false;
+            
+            // 检查是否匹配指定分类
+            return item.categories[categoryType] === categoryKey;
+        });
+    }
+
+    // 更新分类计数
+    updateCategoryCounts() {
+        // 更新总计数
+        const allCount = document.getElementById('allCount');
+        if (allCount) {
+            const totalCount = this.currentTab === 'prompts' ? this.prompts.length : this.templates.length;
+            allCount.textContent = totalCount;
+        }
+
+        // 更新各分类计数
+        Object.entries(this.categories).forEach(([categoryType, categoryData]) => {
+            Object.keys(categoryData.items).forEach(key => {
+                const countElement = document.getElementById(`count-${categoryType}-${key}`);
+                if (countElement) {
+                    const items = this.currentTab === 'prompts' ? this.prompts : this.templates;
+                    const count = items.filter(item => 
+                        item.categories && item.categories[categoryType] === key
+                    ).length;
+                    countElement.textContent = count;
+                }
+            });
+        });
+    }
+
+    // 获取项目的分类标签HTML
+    getCategoryTagsHtml(categories) {
+        if (!categories) return '';
+        
+        const tags = [];
+        Object.entries(categories).forEach(([categoryType, categoryKey]) => {
+            const categoryData = this.categories[categoryType];
+            if (categoryData && categoryData.items[categoryKey]) {
+                const item = categoryData.items[categoryKey];
+                tags.push(`<span class="category-tag ${categoryType}" style="background-color: ${item.color}">${item.name}</span>`);
+            }
+        });
+        
+        return tags.length > 0 ? `<div class="category-tags">${tags.join('')}</div>` : '';
+    }
+
+    // 获取分类选择器HTML
+    getCategorySelectionHtml() {
+        return `
+            <div class="form-group-modern">
+                <label class="form-label-modern">
+                    <span class="label-text">分类</span>
+                    <span class="label-optional">可选</span>
+                </label>
+                <div class="input-hint">为Prompt选择合适的分类，便于管理和查找</div>
+                
+                ${Object.entries(this.categories).map(([categoryType, categoryData]) => `
+                    <div class="category-selector">
+                        <label class="category-selector-label">
+                            <span class="category-group-icon">${categoryData.icon}</span>
+                            ${categoryData.name}
+                        </label>
+                        <div class="category-selector-grid">
+                            ${Object.entries(categoryData.items).map(([key, item]) => `
+                                <div class="category-option" data-category-type="${categoryType}" data-category-key="${key}">
+                                    <span class="category-option-icon">${item.icon}</span>
+                                    <span class="category-option-text">${item.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    // 从表单获取选中的分类
+    getSelectedCategories(formElement) {
+        const categories = {};
+        const selectedOptions = formElement.querySelectorAll('.category-option.selected');
+        
+        selectedOptions.forEach(option => {
+            const categoryType = option.dataset.categoryType;
+            const categoryKey = option.dataset.categoryKey;
+            if (categoryType && categoryKey) {
+                categories[categoryType] = categoryKey;
+            }
+        });
+        
+        return Object.keys(categories).length > 0 ? categories : null;
+    }
+
+    // 绑定分类选择事件
+    bindCategorySelectionEvents(formElement) {
+        const categoryOptions = formElement.querySelectorAll('.category-option');
+        
+        categoryOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const categoryType = option.dataset.categoryType;
+                
+                // 清除同类型的其他选择
+                formElement.querySelectorAll(`[data-category-type="${categoryType}"]`).forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // 切换当前选择
+                option.classList.toggle('selected');
+            });
+        });
     }
 
     async loadPrompts() {
@@ -380,7 +824,8 @@ class PromptManagerApp {
             return;
         }
 
-        container.innerHTML = this.prompts.map(prompt => this.renderPromptItem(prompt)).join('');
+        // 使用筛选渲染方法
+        this.renderFilteredPrompts();
     }
 
     renderTemplatesList() {
@@ -394,7 +839,8 @@ class PromptManagerApp {
             return;
         }
 
-        container.innerHTML = this.templates.map(template => this.renderTemplateItem(template)).join('');
+        // 使用筛选渲染方法
+        this.renderFilteredTemplates();
     }
 
     renderPromptItem(prompt) {
@@ -406,7 +852,7 @@ class PromptManagerApp {
         return `
             <div class="list-item ${isActive ? 'active' : ''} ${selectableClass} ${selectedClass}" 
                  data-item-id="${prompt.id}"
-                 onclick="${this.bulkSelectionMode ? `window.app.toggleItemSelection('${prompt.id}')` : `window.app.selectPrompt('${prompt.id}')`}">
+                 data-item-type="prompt">
                 <div class="item-header">
                     <div class="item-title">${window.utils.escapeHtml(prompt.title)}</div>
                     ${!this.bulkSelectionMode ? `
@@ -416,16 +862,18 @@ class PromptManagerApp {
                         </div>
                     ` : ''}
                 </div>
-                <div class="item-preview">${window.utils.truncateText(prompt.content, 120)}</div>
+                <div class="item-preview">${window.utils.truncateText(prompt.content, 100)}</div>
+                ${this.getCategoryTagsHtml(prompt.categories)}
                 <div class="item-meta">
                     <div class="item-stats">
-                        <span>${window.utils.formatDate(prompt.updated_at)}</span>
-                        <span>${prompt.version_count} 个版本</span>
+                        <span class="item-date">${window.utils.formatDate(prompt.updated_at)}</span>
+                        <span class="item-versions">${prompt.version_count} 版本</span>
                     </div>
                 </div>
                 ${prompt.tags && prompt.tags.length > 0 ? `
                     <div class="tags">
-                        ${prompt.tags.map(tag => `<span class="tag">${window.utils.escapeHtml(tag)}</span>`).join('')}
+                        ${prompt.tags.slice(0, 3).map(tag => `<span class="tag">${window.utils.escapeHtml(tag)}</span>`).join('')}
+                        ${prompt.tags.length > 3 ? `<span class="tag-more">+${prompt.tags.length - 3}</span>` : ''}
                     </div>
                 ` : ''}
             </div>
@@ -441,7 +889,7 @@ class PromptManagerApp {
         return `
             <div class="list-item ${isActive ? 'active' : ''} ${selectableClass} ${selectedClass}" 
                  data-item-id="${template.id}"
-                 onclick="${this.bulkSelectionMode ? `window.app.toggleItemSelection('${template.id}')` : `window.app.selectTemplate('${template.id}')`}">
+                 data-item-type="template">
                 <div class="item-header">
                     <div class="item-title">${window.utils.escapeHtml(template.name)}</div>
                     ${!this.bulkSelectionMode ? `
@@ -451,16 +899,18 @@ class PromptManagerApp {
                         </div>
                     ` : ''}
                 </div>
-                <div class="item-preview">${window.utils.truncateText(template.description || template.content, 120)}</div>
+                <div class="item-preview">${window.utils.truncateText(template.description || template.content, 100)}</div>
+                ${this.getCategoryTagsHtml(template.categories)}
                 <div class="item-meta">
                     <div class="item-stats">
-                        <span>${window.utils.formatDate(template.created_at)}</span>
-                        <span>使用 ${template.usage_count} 次</span>
+                        <span class="item-date">${window.utils.formatDate(template.created_at)}</span>
+                        <span class="item-usage">使用 ${template.usage_count} 次</span>
                     </div>
                 </div>
                 ${template.tags && template.tags.length > 0 ? `
                     <div class="tags">
-                        ${template.tags.map(tag => `<span class="tag">${window.utils.escapeHtml(tag)}</span>`).join('')}
+                        ${template.tags.slice(0, 3).map(tag => `<span class="tag">${window.utils.escapeHtml(tag)}</span>`).join('')}
+                        ${template.tags.length > 3 ? `<span class="tag-more">+${template.tags.length - 3}</span>` : ''}
                     </div>
                 ` : ''}
             </div>
@@ -531,47 +981,74 @@ class PromptManagerApp {
         this.updateBreadcrumb(['Prompt库', prompt.title]);
 
         const content = `
-            <div class="detail-header">
-                <h1 class="detail-title">${window.utils.escapeHtml(prompt.title)}</h1>
-                <div class="detail-meta">
-                    <span>创建时间：${window.utils.formatDate(prompt.created_at)}</span>
-                    <span>更新时间：${window.utils.formatDate(prompt.updated_at)}</span>
-                    <span>版本数量：${prompt.version_count}</span>
-                </div>
-                <div class="detail-actions">
-                    <button class="btn btn-primary" onclick="window.app.editPrompt('${prompt.id}')">
-                        <span class="btn-icon">✏️</span>编辑
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.app.showVersionHistory('${prompt.id}')">
-                        <span class="btn-icon">📋</span>版本历史
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.app.saveAsTemplate('${prompt.id}')">
-                        <span class="btn-icon">📄</span>保存为模板
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.app.copyPrompt('${prompt.id}')">
-                        <span class="btn-icon">📋</span>复制内容
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.app.exportPrompt('${prompt.id}')">
-                        <span class="btn-icon">📤</span>导出
-                    </button>
-                    <button class="btn btn-error" onclick="window.app.deletePrompt('${prompt.id}')">
-                        <span class="btn-icon">🗑️</span>删除
-                    </button>
-                </div>
-            </div>
-            
-            <div class="detail-content">
-                <h3>内容预览</h3>
-                <div class="content-preview">${window.utils.escapeHtml(prompt.content)}</div>
-                
-                ${prompt.tags && prompt.tags.length > 0 ? `
-                    <div class="detail-section">
-                        <h4>标签</h4>
-                        <div class="tags">
-                            ${prompt.tags.map(tag => `<span class="tag primary">${window.utils.escapeHtml(tag)}</span>`).join('')}
+            <div class="detail-view-container">
+                <!-- 标题区域 -->
+                <div class="detail-title-section">
+                    <h1 class="detail-main-title">${window.utils.escapeHtml(prompt.title)}</h1>
+                    <div class="detail-meta-info">
+                        <div class="meta-item">
+                            <span class="meta-label">创建</span>
+                            <span class="meta-value">${window.utils.formatDate(prompt.created_at)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">更新</span>
+                            <span class="meta-value">${window.utils.formatDate(prompt.updated_at)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">版本</span>
+                            <span class="meta-value">${prompt.version_count} 个</span>
                         </div>
                     </div>
-                ` : ''}
+                </div>
+
+                <!-- 操作按钮区域 -->
+                <div class="detail-actions-section">
+                    <div class="primary-actions">
+                        <button class="btn btn-primary" onclick="window.app.editPrompt('${prompt.id}')">
+                            <span class="btn-icon">✏️</span>编辑
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.app.showVersionHistory('${prompt.id}')">
+                            <span class="btn-icon">📋</span>版本历史
+                        </button>
+                    </div>
+                    <div class="secondary-actions">
+                        <button class="btn btn-outline" onclick="window.app.saveAsTemplate('${prompt.id}')">
+                            <span class="btn-icon">📄</span>保存为模板
+                        </button>
+                        <button class="btn btn-outline" onclick="window.app.copyPrompt('${prompt.id}')">
+                            <span class="btn-icon">📋</span>复制
+                        </button>
+                        <button class="btn btn-outline" onclick="window.app.exportPrompt('${prompt.id}')">
+                            <span class="btn-icon">📤</span>导出
+                        </button>
+                        <button class="btn btn-error-outline" onclick="window.app.deletePrompt('${prompt.id}')">
+                            <span class="btn-icon">🗑️</span>删除
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 内容区域 -->
+                <div class="detail-content-section">
+                    <div class="content-block">
+                        <div class="content-preview-enhanced">${window.utils.escapeHtml(prompt.content)}</div>
+                    </div>
+                    
+                    ${this.getCategoryTagsHtml(prompt.categories) ? `
+                        <div class="content-block">
+                            <h4 class="section-title">分类</h4>
+                            ${this.getCategoryTagsHtml(prompt.categories)}
+                        </div>
+                    ` : ''}
+                    
+                    ${prompt.tags && prompt.tags.length > 0 ? `
+                        <div class="content-block">
+                            <h4 class="section-title">标签</h4>
+                            <div class="tags-enhanced">
+                                ${prompt.tags.map(tag => `<span class="tag-enhanced">${window.utils.escapeHtml(tag)}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
             </div>
         `;
 
@@ -584,48 +1061,76 @@ class PromptManagerApp {
         this.updateBreadcrumb(['模板库', template.name]);
 
         const content = `
-            <div class="detail-header">
-                <h1 class="detail-title">${window.utils.escapeHtml(template.name)}</h1>
-                <div class="detail-meta">
-                    <span>创建时间：${window.utils.formatDate(template.created_at)}</span>
-                    <span>更新时间：${window.utils.formatDate(template.updated_at)}</span>
-                    <span>使用次数：${template.usage_count}</span>
-                </div>
-                <div class="detail-actions">
-                    <button class="btn btn-primary" onclick="window.app.createFromTemplate('${template.id}')">
-                        <span class="btn-icon">🚀</span>使用模板
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.app.editTemplate('${template.id}')">
-                        <span class="btn-icon">✏️</span>编辑模板
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.app.copyTemplate('${template.id}')">
-                        <span class="btn-icon">📋</span>复制内容
-                    </button>
-                    <button class="btn btn-error" onclick="window.app.deleteTemplate('${template.id}')">
-                        <span class="btn-icon">🗑️</span>删除
-                    </button>
-                </div>
-            </div>
-            
-            <div class="detail-content">
-                ${template.description ? `
-                    <div class="detail-section">
-                        <h3>描述</h3>
-                        <p>${window.utils.escapeHtml(template.description)}</p>
-                    </div>
-                ` : ''}
-                
-                <h3>模板内容</h3>
-                <div class="content-preview">${window.utils.escapeHtml(template.content)}</div>
-                
-                ${template.tags && template.tags.length > 0 ? `
-                    <div class="detail-section">
-                        <h4>标签</h4>
-                        <div class="tags">
-                            ${template.tags.map(tag => `<span class="tag primary">${window.utils.escapeHtml(tag)}</span>`).join('')}
+            <div class="detail-view-container">
+                <!-- 标题区域 -->
+                <div class="detail-title-section">
+                    <h1 class="detail-main-title">${window.utils.escapeHtml(template.name)}</h1>
+                    <div class="detail-meta-info">
+                        <div class="meta-item">
+                            <span class="meta-label">创建</span>
+                            <span class="meta-value">${window.utils.formatDate(template.created_at)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">更新</span>
+                            <span class="meta-value">${window.utils.formatDate(template.updated_at)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">使用</span>
+                            <span class="meta-value">${template.usage_count} 次</span>
                         </div>
                     </div>
-                ` : ''}
+                </div>
+
+                <!-- 操作按钮区域 -->
+                <div class="detail-actions-section">
+                    <div class="primary-actions">
+                        <button class="btn btn-primary" onclick="window.app.createFromTemplate('${template.id}')">
+                            <span class="btn-icon">🚀</span>使用模板
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.app.editTemplate('${template.id}')">
+                            <span class="btn-icon">✏️</span>编辑
+                        </button>
+                    </div>
+                    <div class="secondary-actions">
+                        <button class="btn btn-outline" onclick="window.app.copyTemplate('${template.id}')">
+                            <span class="btn-icon">📋</span>复制
+                        </button>
+                        <button class="btn btn-error-outline" onclick="window.app.deleteTemplate('${template.id}')">
+                            <span class="btn-icon">🗑️</span>删除
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 内容区域 -->
+                <div class="detail-content-section">
+                    ${template.description ? `
+                        <div class="content-block">
+                            <h4 class="section-title">描述</h4>
+                            <p class="template-description">${window.utils.escapeHtml(template.description)}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="content-block">
+                        <h4 class="section-title">模板内容</h4>
+                        <div class="content-preview-enhanced">${window.utils.escapeHtml(template.content)}</div>
+                    </div>
+                    
+                    ${this.getCategoryTagsHtml(template.categories) ? `
+                        <div class="content-block">
+                            <h4 class="section-title">分类</h4>
+                            ${this.getCategoryTagsHtml(template.categories)}
+                        </div>
+                    ` : ''}
+                    
+                    ${template.tags && template.tags.length > 0 ? `
+                        <div class="content-block">
+                            <h4 class="section-title">标签</h4>
+                            <div class="tags-enhanced">
+                                ${template.tags.map(tag => `<span class="tag-enhanced">${window.utils.escapeHtml(tag)}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
             </div>
         `;
 
@@ -707,17 +1212,41 @@ class PromptManagerApp {
         
         if (promptCount) promptCount.textContent = this.prompts.length;
         if (templateCount) templateCount.textContent = this.templates.length;
+        
+        // 更新分类计数
+        this.updateCategoryCounts();
     }
 
     // 标签切换处理
     onTabSwitch(tab) {
         this.currentTab = tab;
         
+        // 更新标签页状态
+        document.querySelectorAll('.nav-tab').forEach(tabEl => {
+            tabEl.classList.remove('active');
+            if (tabEl.dataset.tab === tab) {
+                tabEl.classList.add('active');
+            }
+        });
+
+        // 更新列表显示
+        document.querySelectorAll('.item-list').forEach(list => {
+            list.classList.remove('active');
+        });
+        
+        const targetList = document.getElementById(tab + 'List');
+        if (targetList) {
+            targetList.classList.add('active');
+        }
+        
         if (tab === 'prompts') {
             this.loadPrompts();
         } else if (tab === 'templates') {
             this.loadTemplates();
         }
+        
+        // 更新分类计数
+        this.updateCategoryCounts();
         
         // 如果当前显示的是详情页，切换到欢迎页
         if (this.currentView !== 'welcome') {
@@ -838,6 +1367,8 @@ class PromptManagerApp {
                         <div class="input-hint">用逗号分隔多个标签，便于分类和搜索</div>
                     </div>
                     
+                    ${this.getCategorySelectionHtml()}
+                    
                     <div class="form-group-modern">
                         <label for="promptNote" class="form-label-modern">
                             <span class="label-text">版本说明</span>
@@ -887,6 +1418,9 @@ class PromptManagerApp {
             }
         });
 
+        // 绑定分类选择事件
+        this.bindCategorySelectionEvents(modal);
+
         // 自动聚焦第一个输入框
         setTimeout(() => {
             const titleInput = document.getElementById('promptTitle');
@@ -924,6 +1458,9 @@ class PromptManagerApp {
 
         // 处理标签
         const tags = tagsStr ? tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+        
+        // 获取选中的分类
+        const categories = this.getSelectedCategories(form);
 
         try {
             // 显示加载状态
@@ -933,7 +1470,7 @@ class PromptManagerApp {
             submitBtn.disabled = true;
 
             // 调用API创建Prompt
-            const newPrompt = await window.api.createPrompt(title, content, tags, note);
+            const newPrompt = await window.api.createPrompt(title, content, tags, note, categories);
             
             // 关闭模态框
             this.closeModal();
@@ -941,8 +1478,39 @@ class PromptManagerApp {
             // 刷新Prompt列表
             await this.loadPrompts();
             
-            // 选择新创建的Prompt
-            await this.selectPrompt(newPrompt.id);
+            // 如果有分类选择，自动切换到对应分类
+            if (categories) {
+                const firstCategory = Object.entries(categories)[0];
+                if (firstCategory) {
+                    const [categoryType, categoryKey] = firstCategory;
+                    const categoryFilter = `${categoryType}:${categoryKey}`;
+                    
+                    // 确保DOM已经更新，然后应用筛选
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    // 验证分类项是否存在
+                    const categoryItem = document.querySelector(`[data-category="${categoryFilter}"]`);
+                    if (categoryItem) {
+                        console.log('Found category item, applying filter:', categoryFilter);
+                        this.filterByCategory(categoryFilter);
+                        
+                        // 再次延迟选择项目，确保筛选已完成
+                        setTimeout(() => {
+                            this.selectPrompt(newPrompt.id);
+                        }, 100);
+                    } else {
+                        console.log('Category item not found:', categoryFilter);
+                        // 如果找不到分类项，直接选择
+                        this.selectPrompt(newPrompt.id);
+                    }
+                } else {
+                    // 如果没有分类，直接选择
+                    this.selectPrompt(newPrompt.id);
+                }
+            } else {
+                // 如果没有分类，直接选择
+                this.selectPrompt(newPrompt.id);
+            }
             
             // 显示成功消息
             this.showNotification('Prompt创建成功！', 'success');
@@ -1032,6 +1600,8 @@ class PromptManagerApp {
                         >
                         <div class="input-hint">用逗号分隔多个标签，便于分类管理</div>
                     </div>
+                    
+                    ${this.getCategorySelectionHtml()}
                 </form>
                 
                 <div class="modal-footer-modern">
@@ -1064,6 +1634,9 @@ class PromptManagerApp {
                 this.submitCreateTemplate();
             }
         });
+
+        // 绑定分类选择事件
+        this.bindCategorySelectionEvents(modal);
 
         // 自动聚焦第一个输入框
         setTimeout(() => {
@@ -1102,6 +1675,9 @@ class PromptManagerApp {
 
         // 处理标签
         const tags = tagsStr ? tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+        
+        // 获取选中的分类
+        const categories = this.getSelectedCategories(form);
 
         try {
             // 显示加载状态
@@ -1111,7 +1687,7 @@ class PromptManagerApp {
             submitBtn.disabled = true;
 
             // 调用API创建模板
-            const newTemplate = await window.api.createTemplate(name, content, description, tags);
+            const newTemplate = await window.api.createTemplate(name, content, description, tags, categories);
             
             // 关闭模态框
             this.closeModal();
@@ -1119,9 +1695,42 @@ class PromptManagerApp {
             // 刷新模板列表
             await this.loadTemplates();
             
-            // 切换到模板标签页并选择新创建的模板
+            // 切换到模板标签页
             this.switchToTab('templates');
-            await this.selectTemplate(newTemplate.id);
+            
+            // 如果有分类选择，自动切换到对应分类
+            if (categories) {
+                const firstCategory = Object.entries(categories)[0];
+                if (firstCategory) {
+                    const [categoryType, categoryKey] = firstCategory;
+                    const categoryFilter = `${categoryType}:${categoryKey}`;
+                    
+                    // 确保DOM已经更新，然后应用筛选
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    // 验证分类项是否存在
+                    const categoryItem = document.querySelector(`[data-category="${categoryFilter}"]`);
+                    if (categoryItem) {
+                        console.log('Found category item, applying filter:', categoryFilter);
+                        this.filterByCategory(categoryFilter);
+                        
+                        // 再次延迟选择项目，确保筛选已完成
+                        setTimeout(() => {
+                            this.selectTemplate(newTemplate.id);
+                        }, 100);
+                    } else {
+                        console.log('Category item not found:', categoryFilter);
+                        // 如果找不到分类项，直接选择
+                        this.selectTemplate(newTemplate.id);
+                    }
+                } else {
+                    // 如果没有分类，直接选择
+                    this.selectTemplate(newTemplate.id);
+                }
+            } else {
+                // 如果没有分类，直接选择
+                this.selectTemplate(newTemplate.id);
+            }
             
             // 显示成功消息
             this.showNotification('模板创建成功！', 'success');
@@ -2883,15 +3492,24 @@ class PromptManagerApp {
         this.selectedItems.clear();
         
         const toolbar = document.getElementById('bulkActionsToolbar');
-        const container = document.querySelector('.sidebar-content');
+        const listPanel = document.querySelector('.list-panel');
+        
+        if (!toolbar) {
+            console.error('批量操作工具栏元素未找到');
+            return;
+        }
         
         if (this.bulkSelectionMode) {
             toolbar.style.display = 'flex';
-            container.classList.add('bulk-selection-mode');
+            if (listPanel) {
+                listPanel.classList.add('bulk-selection-mode');
+            }
             this.renderCurrentList();
         } else {
             toolbar.style.display = 'none';
-            container.classList.remove('bulk-selection-mode');
+            if (listPanel) {
+                listPanel.classList.remove('bulk-selection-mode');
+            }
             this.renderCurrentList();
         }
         
@@ -2935,6 +3553,8 @@ class PromptManagerApp {
             } else {
                 itemElement.classList.remove('selected');
             }
+        } else {
+            console.warn(`未找到ID为 ${itemId} 的项目元素`);
         }
     }
 
@@ -3086,6 +3706,152 @@ class PromptManagerApp {
                 }
                 break;
         }
+    }
+
+    // 视图模式切换
+    switchViewMode(mode) {
+        if (this.currentViewMode === mode) return;
+        
+        this.currentViewMode = mode;
+        
+        // 更新按钮状态
+        document.querySelectorAll('.view-mode-buttons .icon-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const activeBtn = document.getElementById(mode + 'ViewBtn');
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+        
+        // 更新列表容器的类
+        document.querySelectorAll('.item-list').forEach(list => {
+            list.classList.remove('list-view', 'grid-view');
+            list.classList.add(mode + '-view');
+        });
+        
+        // 保存用户偏好
+        localStorage.setItem('viewMode', mode);
+        
+        this.showNotification(`已切换到${mode === 'list' ? '列表' : '网格'}视图`, 'success', 2000);
+    }
+    
+    // 排序功能
+    toggleSortDropdown() {
+        const dropdown = document.querySelector('.dropdown');
+        if (dropdown) {
+            dropdown.classList.toggle('active');
+        }
+    }
+    
+    closeSortDropdown() {
+        const dropdown = document.querySelector('.dropdown');
+        if (dropdown) {
+            dropdown.classList.remove('active');
+        }
+    }
+    
+    setSortBy(sortBy) {
+        // 如果点击的是当前排序字段，切换排序顺序
+        if (this.currentSortBy === sortBy) {
+            this.currentSortOrder = this.currentSortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.currentSortBy = sortBy;
+            this.currentSortOrder = 'desc'; // 默认降序
+        }
+        
+        // 更新下拉菜单状态
+        this.updateSortDropdownUI();
+        
+        // 关闭下拉菜单
+        this.closeSortDropdown();
+        
+        // 重新渲染列表
+        this.applyCurrentFilters();
+        
+        // 保存用户偏好
+        localStorage.setItem('sortBy', this.currentSortBy);
+        localStorage.setItem('sortOrder', this.currentSortOrder);
+        
+        const sortNames = {
+            'updated_at': '更新时间',
+            'created_at': '创建时间',
+            'title': '标题',
+            'name': '名称',
+            'usage_count': '使用次数'
+        };
+        
+        const orderName = this.currentSortOrder === 'asc' ? '升序' : '降序';
+        this.showNotification(`按${sortNames[sortBy]}${orderName}排序`, 'success', 2000);
+    }
+    
+    updateSortDropdownUI() {
+        const dropdown = document.querySelector('.dropdown');
+        if (!dropdown) return;
+        
+        // 更新排序按钮文本
+        const sortBtn = dropdown.querySelector('#sortBtn');
+        const indicator = sortBtn?.querySelector('.sort-indicator');
+        if (indicator) {
+            indicator.textContent = this.currentSortOrder === 'asc' ? '↑' : '↓';
+        }
+        
+        // 更新下拉菜单选项状态
+        dropdown.querySelectorAll('[data-sort]').forEach(option => {
+            option.classList.remove('active');
+            if (option.dataset.sort === this.currentSortBy) {
+                option.classList.add('active');
+            }
+        });
+    }
+    
+    // 排序数据
+    sortItems(items) {
+        return [...items].sort((a, b) => {
+            let aValue, bValue;
+            
+            switch (this.currentSortBy) {
+                case 'title':
+                    // 对于模板使用name字段，对于prompt使用title字段
+                    aValue = (a.title || a.name || '').toLowerCase();
+                    bValue = (b.title || b.name || '').toLowerCase();
+                    break;
+                case 'created_at':
+                case 'updated_at':
+                    aValue = new Date(a[this.currentSortBy]);
+                    bValue = new Date(b[this.currentSortBy]);
+                    break;
+                case 'usage_count':
+                    aValue = a.usage_count || 0;
+                    bValue = b.usage_count || 0;
+                    break;
+                default:
+                    return 0;
+            }
+            
+            if (aValue < bValue) {
+                return this.currentSortOrder === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return this.currentSortOrder === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+    }
+    
+    // 初始化用户偏好
+    initializeUserPreferences() {
+        // 恢复视图模式
+        const savedViewMode = localStorage.getItem('viewMode') || 'list';
+        this.switchViewMode(savedViewMode);
+        
+        // 恢复排序设置
+        const savedSortBy = localStorage.getItem('sortBy') || 'updated_at';
+        const savedSortOrder = localStorage.getItem('sortOrder') || 'desc';
+        this.currentSortBy = savedSortBy;
+        this.currentSortOrder = savedSortOrder;
+        
+        this.updateSortDropdownUI();
     }
 }
 

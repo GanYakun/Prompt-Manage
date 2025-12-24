@@ -43,7 +43,7 @@ class PromptManager {
   }
 
   // Create new prompt with automatic versioning
-  async createPrompt(title, content, tags = [], note = 'Initial version') {
+  async createPrompt(title, content, tags = [], note = 'Initial version', categories = null) {
     await this.initialize();
     
     const promptId = generateUUID();
@@ -57,6 +57,7 @@ class PromptManager {
         title: title.trim(),
         content: content,
         tags: Array.isArray(tags) ? JSON.stringify(tags) : JSON.stringify([]),
+        categories: categories ? JSON.stringify(categories) : null,
         created_at: now,
         updated_at: now,
         current_version_id: versionId,
@@ -85,6 +86,7 @@ class PromptManager {
       return {
         ...prompt,
         tags: safeParseJSON(prompt.tags),
+        categories: safeParseJSON(prompt.categories, null),
         current_version: version
       };
     } catch (error) {
@@ -185,6 +187,7 @@ class PromptManager {
       return {
         ...prompt,
         tags: safeParseJSON(prompt.tags, []),
+        categories: safeParseJSON(prompt.categories, null),
         current_version: currentVersion
       };
     } catch (error) {
@@ -205,6 +208,7 @@ class PromptManager {
         return {
           ...prompt,
           tags: safeParseJSON(prompt.tags, []),
+          categories: safeParseJSON(prompt.categories, null),
           current_version: currentVersion
         };
       }));

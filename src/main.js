@@ -237,9 +237,9 @@ class PromptVersionManagerApp {
     });
 
     // Prompt management
-    ipcMain.handle('create-prompt', async (event, title, content, tags, note) => {
+    ipcMain.handle('create-prompt', async (event, title, content, tags, note, categories) => {
       try {
-        return await this.appController.createPrompt(title, content, tags, note);
+        return await this.appController.createPrompt(title, content, tags, note, categories);
       } catch (error) {
         throw error;
       }
@@ -311,9 +311,9 @@ class PromptVersionManagerApp {
     });
 
     // Template management
-    ipcMain.handle('create-template', async (event, name, content, description, tags) => {
+    ipcMain.handle('create-template', async (event, name, content, description, tags, categories) => {
       try {
-        return await this.appController.createTemplate(name, content, description, tags);
+        return await this.appController.createTemplate(name, content, description, tags, categories);
       } catch (error) {
         throw error;
       }

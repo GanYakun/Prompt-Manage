@@ -208,9 +208,17 @@ class PromptRepository extends BaseRepository {
       }
     }
     
+    let categories = null;
+    try {
+      categories = promptRow.categories ? JSON.parse(promptRow.categories) : null;
+    } catch (error) {
+      console.warn('Failed to parse prompt categories:', promptRow.categories, error);
+    }
+    
     return {
       ...promptRow,
       tags: tags,
+      categories: categories,
       createdAt: promptRow.created_at,
       updatedAt: promptRow.updated_at,
       currentVersionId: promptRow.current_version_id,

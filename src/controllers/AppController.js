@@ -28,9 +28,9 @@ class AppController {
   }
 
   // Prompt相关方法
-  async createPrompt(title, content, tags = [], note = '初始版本') {
+  async createPrompt(title, content, tags = [], note = '初始版本', categories = null) {
     await this.initialize();
-    return this.promptManager.createPrompt(title, content, tags, note);
+    return this.promptManager.createPrompt(title, content, tags, note, categories);
   }
 
   async updatePrompt(promptId, updates, note = null) {
@@ -85,9 +85,9 @@ class AppController {
   }
 
   // 模板相关方法
-  async createTemplate(name, content, description = '', tags = []) {
+  async createTemplate(name, content, description = '', tags = [], categories = null) {
     await this.initialize();
-    return this.templateManager.createTemplate(name, content, description, tags);
+    return this.templateManager.createTemplate(name, content, description, tags, categories);
   }
 
   async createTemplateFromPrompt(promptId, name, description = '', additionalTags = []) {

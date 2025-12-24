@@ -41,7 +41,7 @@ class TemplateManager {
   }
 
   // 创建新模板
-  async createTemplate(name, content, description = '', tags = []) {
+  async createTemplate(name, content, description = '', tags = [], categories = null) {
     await this.initialize();
     
     const templateId = generateUUID();
@@ -54,6 +54,7 @@ class TemplateManager {
         content: content,
         description: description.trim(),
         tags: Array.isArray(tags) ? JSON.stringify(tags) : JSON.stringify([]),
+        categories: categories ? JSON.stringify(categories) : null,
         created_at: now,
         updated_at: now,
         usage_count: 0
@@ -66,7 +67,8 @@ class TemplateManager {
 
       return {
         ...template,
-        tags: safeParseJSON(template.tags)
+        tags: safeParseJSON(template.tags),
+        categories: safeParseJSON(template.categories, null)
       };
     } catch (error) {
       console.error('Failed to create template:', error);
@@ -144,7 +146,8 @@ class TemplateManager {
 
       return {
         ...template,
-        tags: safeParseJSON(template.tags, [])
+        tags: safeParseJSON(template.tags, []),
+        categories: safeParseJSON(template.categories, null)
       };
     } catch (error) {
       console.error('Failed to get template:', error);
@@ -161,10 +164,12 @@ class TemplateManager {
       
       return templates.map(template => {
         const tags = safeParseJSON(template.tags, []);
+        const categories = safeParseJSON(template.categories, null);
         
         return {
           ...template,
-          tags: tags
+          tags: tags,
+          categories: categories
         };
       });
     } catch (error) {
