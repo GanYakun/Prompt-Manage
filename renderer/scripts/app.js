@@ -29,16 +29,20 @@ class PromptManagerApp {
 
     // 初始化分类系统
     initializeCategories() {
+        // 从localStorage恢复展开状态
+        const savedExpandedState = JSON.parse(localStorage.getItem('categoryExpandedState') || '{}');
+        
         return {
             // 按行业分类
             industry: {
                 name: '行业应用',
                 icon: '🏢',
+                expanded: savedExpandedState.industry !== false, // 默认展开，除非明确设置为false
                 items: {
                     'tech': { name: '科技互联网', icon: '💻', color: '#3b82f6' },
                     'education': { name: '教育培训', icon: '📚', color: '#10b981' },
                     'marketing': { name: '市场营销', icon: '📈', color: '#f59e0b' },
-                    'finance': { name: '金融投资', icon: '💰', color: '#8b5cf6' },
+                    'finance': { name: '金融投资', icon: '�', colorr: '#8b5cf6' },
                     'healthcare': { name: '医疗健康', icon: '🏥', color: '#ef4444' },
                     'legal': { name: '法律咨询', icon: '⚖️', color: '#6b7280' },
                     'creative': { name: '创意设计', icon: '🎨', color: '#ec4899' },
@@ -48,10 +52,11 @@ class PromptManagerApp {
             // 按用途分类
             purpose: {
                 name: '用途类型',
-                icon: '🎯',
+                icon: '�',
+                expanded: savedExpandedState.purpose !== false, // 默认展开
                 items: {
                     'writing': { name: '内容写作', icon: '✍️', color: '#10b981' },
-                    'analysis': { name: '数据分析', icon: '📊', color: '#3b82f6' },
+                    'analysis': { name: '数据分析', icon: '�',  color: '#3b82f6' },
                     'translation': { name: '翻译润色', icon: '🌐', color: '#8b5cf6' },
                     'coding': { name: '编程开发', icon: '💻', color: '#f59e0b' },
                     'brainstorm': { name: '头脑风暴', icon: '💡', color: '#ec4899' },
@@ -64,6 +69,7 @@ class PromptManagerApp {
             difficulty: {
                 name: '复杂程度',
                 icon: '📊',
+                expanded: savedExpandedState.difficulty === true, // 默认收起
                 items: {
                     'basic': { name: '基础入门', icon: '🟢', color: '#10b981' },
                     'intermediate': { name: '中级进阶', icon: '🟡', color: '#f59e0b' },
@@ -74,6 +80,7 @@ class PromptManagerApp {
             format: {
                 name: '输出格式',
                 icon: '📄',
+                expanded: savedExpandedState.format === true, // 默认收起
                 items: {
                     'text': { name: '纯文本', icon: '📝', color: '#6b7280' },
                     'list': { name: '列表格式', icon: '📋', color: '#3b82f6' },
@@ -471,7 +478,7 @@ class PromptManagerApp {
             
             // 更新计数和分类
             this.updateCounts();
-            this.initializeCategoryFilter();
+            await this.initializeCategoryFilter();
             
             // 初始化用户偏好设置
             this.initializeUserPreferences();
@@ -482,7 +489,7 @@ class PromptManagerApp {
     }
 
     // 初始化分类筛选器
-    initializeCategoryFilter() {
+    async initializeCategoryFilter() {
         const categoryList = document.getElementById('categoryList');
         if (!categoryList) return;
 
@@ -493,16 +500,40 @@ class PromptManagerApp {
             categoryList.appendChild(allItem);
         }
 
-        // 添加各个分类
-        Object.entries(this.categories).forEach(([categoryType, categoryData]) => {
-            // 添加分类组标题
+        // 添加分隔线
+        const separator = document.createElement('div');
+        separator.className = 'category-separator';
+        categoryList.appendChild(separator);
+
+        // 获取所有分类（包括自定义分类）
+        const allCategories = await this.getAllCategories();
+
+        // 添加各个分类组
+        Object.entries(allCategories).forEach(([categoryType, categoryData]) => {
+            // 创建分类组容器
+            const groupContainer = document.createElement('div');
+            groupContainer.className = 'category-group';
+            groupContainer.dataset.categoryType = categoryType;
+
+            // 添加分类组标题（可点击展开/收起）
             const groupHeader = document.createElement('div');
             groupHeader.className = 'category-group-header';
+            const isExpanded = categoryData.expanded !== false; // 默认展开
             groupHeader.innerHTML = `
+                <span class="category-expand-icon ${isExpanded ? 'expanded' : ''}">${isExpanded ? '▼' : '▶'}</span>
                 <span class="category-group-icon">${categoryData.icon}</span>
                 <span class="category-group-name">${categoryData.name}</span>
+                <span class="category-group-count" id="group-count-${categoryType}">0</span>
             `;
-            categoryList.appendChild(groupHeader);
+            
+            // 绑定展开/收起事件
+            groupHeader.addEventListener('click', () => this.toggleCategoryGroup(categoryType));
+            groupContainer.appendChild(groupHeader);
+
+            // 添加分类项容器
+            const itemsContainer = document.createElement('div');
+            itemsContainer.className = `category-items ${isExpanded ? 'expanded' : 'collapsed'}`;
+            itemsContainer.dataset.categoryType = categoryType;
 
             // 添加分类项
             Object.entries(categoryData.items).forEach(([key, item]) => {
@@ -514,9 +545,15 @@ class PromptManagerApp {
                     <span class="category-name">${item.name}</span>
                     <span class="category-count" id="count-${categoryType}-${key}">0</span>
                 `;
-                categoryList.appendChild(categoryItem);
+                itemsContainer.appendChild(categoryItem);
             });
+
+            groupContainer.appendChild(itemsContainer);
+            categoryList.appendChild(groupContainer);
         });
+
+        // 添加自定义分类管理按钮
+        this.addCustomCategoryManagementButton(categoryList);
 
         // 绑定分类筛选事件
         this.bindCategoryEvents();
@@ -687,7 +724,7 @@ class PromptManagerApp {
     }
 
     // 更新分类计数
-    updateCategoryCounts() {
+    async updateCategoryCounts() {
         // 更新总计数
         const allCount = document.getElementById('allCount');
         if (allCount) {
@@ -695,8 +732,13 @@ class PromptManagerApp {
             allCount.textContent = totalCount;
         }
 
+        // 获取所有分类（包括自定义分类）
+        const allCategories = await this.getAllCategories();
+
         // 更新各分类计数
-        Object.entries(this.categories).forEach(([categoryType, categoryData]) => {
+        Object.entries(allCategories).forEach(([categoryType, categoryData]) => {
+            let groupTotal = 0;
+            
             Object.keys(categoryData.items).forEach(key => {
                 const countElement = document.getElementById(`count-${categoryType}-${key}`);
                 if (countElement) {
@@ -705,9 +747,257 @@ class PromptManagerApp {
                         item.categories && item.categories[categoryType] === key
                     ).length;
                     countElement.textContent = count;
+                    groupTotal += count;
                 }
             });
+
+            // 更新分组总计数
+            const groupCountElement = document.getElementById(`group-count-${categoryType}`);
+            if (groupCountElement) {
+                groupCountElement.textContent = groupTotal;
+            }
         });
+    }
+
+    // 添加自定义分类管理按钮
+    addCustomCategoryManagementButton(categoryList) {
+        const managementContainer = document.createElement('div');
+        managementContainer.className = 'custom-category-management';
+        
+        const addButton = document.createElement('button');
+        addButton.className = 'btn btn-sm btn-outline custom-category-add-btn';
+        addButton.innerHTML = '<span class="btn-icon">➕</span>添加自定义分类';
+        addButton.addEventListener('click', () => this.showCustomCategoryManagement());
+        
+        managementContainer.appendChild(addButton);
+        categoryList.appendChild(managementContainer);
+    }
+
+    // 显示自定义分类管理界面
+    async showCustomCategoryManagement() {
+        try {
+            console.log('开始加载自定义分类管理界面...');
+            
+            // 获取图标和颜色选项（异步调用）
+            let iconOptions, colorOptions;
+            
+            try {
+                iconOptions = await window.api.getCustomCategoryIconOptions();
+                console.log('图标选项:', iconOptions, '类型:', typeof iconOptions);
+            } catch (error) {
+                console.error('获取图标选项失败:', error);
+                iconOptions = {
+                    business: ['🏢', '💼', '📊', '💰'],
+                    technology: ['💻', '📱', '⚙️', '🔧'],
+                    creative: ['🎨', '🖌️', '🎭', '🎪']
+                };
+            }
+            
+            try {
+                colorOptions = await window.api.getCustomCategoryColorOptions();
+                console.log('颜色选项原始值:', colorOptions);
+                console.log('颜色选项类型:', typeof colorOptions);
+                console.log('是否为数组:', Array.isArray(colorOptions));
+                
+                // 如果不是数组，尝试转换或使用默认值
+                if (!Array.isArray(colorOptions)) {
+                    console.warn('颜色选项不是数组，使用默认值');
+                    colorOptions = [
+                        '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+                        '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
+                        '#f97316', '#6b7280', '#14b8a6', '#a855f7'
+                    ];
+                }
+            } catch (error) {
+                console.error('获取颜色选项失败:', error);
+                colorOptions = [
+                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+                    '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
+                    '#f97316', '#6b7280', '#14b8a6', '#a855f7'
+                ];
+            }
+            
+            console.log('最终颜色选项:', colorOptions, '是否为数组:', Array.isArray(colorOptions));
+            
+            // 获取统计信息（异步调用）
+            const statistics = await window.api.getCustomCategoryGroupStatistics();
+            
+            console.log('准备创建模板，colorOptions类型:', typeof colorOptions, 'isArray:', Array.isArray(colorOptions));
+            console.log('colorOptions内容:', colorOptions);
+
+            const content = `
+                <div class="modern-modal-content">
+                    <div class="modal-header-modern">
+                        <h2 class="modal-title-modern">自定义分类管理</h2>
+                        <p class="modal-subtitle">创建和管理您的专属分类体系</p>
+                    </div>
+                    
+                    <div class="custom-category-management-content" style="padding: 32px;">
+                        <!-- 现有分类组 -->
+                        <div class="existing-groups-section">
+                            <h3>现有自定义分类组</h3>
+                            <div class="existing-groups-list" id="existingGroupsList">
+                                ${statistics.length > 0 ? 
+                                    statistics.map(group => `
+                                        <div class="existing-group-item">
+                                            <div class="group-info">
+                                                <span class="group-icon">${group.group_icon}</span>
+                                                <span class="group-name">${group.group_name}</span>
+                                                <span class="group-count">${group.category_count} 项</span>
+                                            </div>
+                                            <div class="group-actions">
+                                                <button class="btn btn-sm btn-outline" onclick="window.app.editCustomCategoryGroup('${group.group_type}')">编辑</button>
+                                                <button class="btn btn-sm btn-error-outline" onclick="window.app.deleteCustomCategoryGroup('${group.group_type}')">删除</button>
+                                            </div>
+                                        </div>
+                                    `).join('') :
+                                    '<div class="empty-state-small">还没有自定义分类组</div>'
+                                }
+                            </div>
+                        </div>
+
+                        <!-- 创建新分类组 -->
+                        <div class="create-group-section">
+                            <h3>创建新分类组</h3>
+                            <form id="createCustomCategoryForm">
+                                <div class="form-group-modern">
+                                    <label class="form-label-modern">
+                                        <span class="label-text">分组名称</span>
+                                        <span class="label-required">*</span>
+                                    </label>
+                                    <input type="text" name="groupName" class="form-input-modern" placeholder="例如：项目类型、客户行业..." required>
+                                </div>
+
+                                <div class="form-group-modern">
+                                    <label class="form-label-modern">
+                                        <span class="label-text">分组图标</span>
+                                        <span class="label-required">*</span>
+                                    </label>
+                                    <div class="icon-selector" id="groupIconSelector">
+                                        ${Object.entries(iconOptions).map(([category, icons]) => `
+                                            <div class="icon-category">
+                                                <h4>${this.getIconCategoryName(category)}</h4>
+                                                <div class="icon-grid">
+                                                    ${icons.map(icon => `
+                                                        <div class="icon-option" data-icon="${icon}">${icon}</div>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <input type="hidden" name="groupIcon" required>
+                                </div>
+
+                                <div class="form-group-modern">
+                                    <label class="form-label-modern">
+                                        <span class="label-text">分类项</span>
+                                        <span class="label-required">*</span>
+                                    </label>
+                                    <div class="input-hint">为每个分类项填写英文键名、中文名称，并选择图标和颜色</div>
+                                    <div class="category-items-builder" id="categoryItemsBuilder">
+                                        <div class="category-item-template">
+                                            <div class="category-item-inputs">
+                                                <input type="text" placeholder="分类键（如：tech, finance）" class="category-key-input" required>
+                                                <input type="text" placeholder="分类名称（如：科技互联网）" class="category-name-input" required>
+                                                <div class="category-icon-selector">
+                                                    <button type="button" class="icon-select-btn" data-action="select-icon">🔘 选择图标</button>
+                                                    <input type="hidden" class="category-icon-input" required>
+                                                </div>
+                                                <div class="category-color-selector">
+                                                    <!-- 颜色选项将通过JavaScript动态添加 -->
+                                                    <input type="hidden" class="category-color-input" value="#3b82f6">
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-error remove-category-btn">删除</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-secondary" id="addCategoryItemBtn">添加分类项</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer-modern">
+                        <button type="button" class="btn-modern btn-secondary-modern modal-cancel-btn">
+                            <span class="btn-icon">✕</span>
+                            取消
+                        </button>
+                        <button type="button" class="btn-modern btn-primary-modern modal-submit-btn">
+                            <span class="btn-icon">✓</span>
+                            创建分类组
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const modal = window.components.modal.show(content, {
+                title: '',
+                size: 'xlarge',
+                className: 'modern-modal custom-category-modal'
+            });
+
+            // 绑定事件
+            this.bindCustomCategoryManagementEvents(modal);
+
+        } catch (error) {
+            console.error('显示自定义分类管理失败:', error);
+            this.showNotification('加载自定义分类管理失败', 'error');
+        }
+    }
+
+    // 切换分类组的展开/收起状态
+    toggleCategoryGroup(categoryType) {
+        const groupContainer = document.querySelector(`[data-category-type="${categoryType}"]`);
+        const itemsContainer = groupContainer?.querySelector('.category-items');
+        const expandIcon = groupContainer?.querySelector('.category-expand-icon');
+        
+        if (!itemsContainer || !expandIcon) {
+            console.warn(`Category group elements not found for type: ${categoryType}`);
+            return;
+        }
+
+        const isExpanded = itemsContainer.classList.contains('expanded');
+        
+        if (isExpanded) {
+            // 收起
+            itemsContainer.classList.remove('expanded');
+            itemsContainer.classList.add('collapsed');
+            expandIcon.classList.remove('expanded');
+            expandIcon.textContent = '▶';
+        } else {
+            // 展开
+            itemsContainer.classList.remove('collapsed');
+            itemsContainer.classList.add('expanded');
+            expandIcon.classList.add('expanded');
+            expandIcon.textContent = '▼';
+        }
+
+        // 保存状态到localStorage
+        try {
+            const expandedState = JSON.parse(localStorage.getItem('categoryExpandedState') || '{}');
+            expandedState[categoryType] = !isExpanded;
+            localStorage.setItem('categoryExpandedState', JSON.stringify(expandedState));
+        } catch (error) {
+            console.error('Failed to save category expanded state:', error);
+        }
+    }
+
+    // 获取所有分类（包括自定义分类）
+    async getAllCategories() {
+        try {
+            // 获取内置分类
+            const builtinCategories = this.categories;
+            
+            // 获取自定义分类
+            const customCategories = await window.api.getAllCustomCategories();
+            
+            // 合并分类
+            return { ...builtinCategories, ...customCategories };
+        } catch (error) {
+            console.error('获取分类失败:', error);
+            // 如果获取自定义分类失败，返回内置分类
+            return this.categories;
+        }
     }
 
     // 获取项目的分类标签HTML
@@ -727,7 +1017,10 @@ class PromptManagerApp {
     }
 
     // 获取分类选择器HTML
-    getCategorySelectionHtml() {
+    // 获取分类选择器HTML（异步版本）
+    async getCategorySelectionHtml() {
+        const allCategories = await this.getAllCategories();
+        
         return `
             <div class="form-group-modern">
                 <label class="form-label-modern">
@@ -736,7 +1029,7 @@ class PromptManagerApp {
                 </label>
                 <div class="input-hint">为Prompt选择合适的分类，便于管理和查找</div>
                 
-                ${Object.entries(this.categories).map(([categoryType, categoryData]) => `
+                ${Object.entries(allCategories).map(([categoryType, categoryData]) => `
                     <div class="category-selector">
                         <label class="category-selector-label">
                             <span class="category-group-icon">${categoryData.icon}</span>
@@ -1310,6 +1603,8 @@ class PromptManagerApp {
 
     // 创建新Prompt
     async createNewPrompt() {
+        const categorySelectionHtml = await this.getCategorySelectionHtml();
+        
         const content = `
             <div class="modern-modal-content">
                 <div class="modal-header-modern">
@@ -1367,7 +1662,7 @@ class PromptManagerApp {
                         <div class="input-hint">用逗号分隔多个标签，便于分类和搜索</div>
                     </div>
                     
-                    ${this.getCategorySelectionHtml()}
+                    ${categorySelectionHtml}
                     
                     <div class="form-group-modern">
                         <label for="promptNote" class="form-label-modern">
@@ -1529,6 +1824,8 @@ class PromptManagerApp {
     }
 
     async createNewTemplate() {
+        const categorySelectionHtml = await this.getCategorySelectionHtml();
+        
         const content = `
             <div class="modern-modal-content">
                 <div class="modal-header-modern">
@@ -1601,7 +1898,7 @@ class PromptManagerApp {
                         <div class="input-hint">用逗号分隔多个标签，便于分类管理</div>
                     </div>
                     
-                    ${this.getCategorySelectionHtml()}
+                    ${categorySelectionHtml}
                 </form>
                 
                 <div class="modal-footer-modern">
@@ -3852,6 +4149,395 @@ class PromptManagerApp {
         this.currentSortOrder = savedSortOrder;
         
         this.updateSortDropdownUI();
+    }
+
+    // 自定义分类管理相关方法
+    getIconCategoryName(category) {
+        const names = {
+            business: '商业',
+            technology: '科技',
+            education: '教育',
+            creative: '创意',
+            health: '健康',
+            food: '美食',
+            travel: '旅行',
+            sports: '运动',
+            nature: '自然',
+            symbols: '符号'
+        };
+        return names[category] || category;
+    }
+
+    bindCustomCategoryManagementEvents(modal) {
+        // 分组图标选择
+        const groupIconSelector = modal.querySelector('#groupIconSelector');
+        const groupIconInput = modal.querySelector('input[name="groupIcon"]');
+        
+        groupIconSelector.addEventListener('click', (e) => {
+            if (e.target.classList.contains('icon-option')) {
+                // 清除之前的选择
+                groupIconSelector.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+                // 选择当前图标
+                e.target.classList.add('selected');
+                groupIconInput.value = e.target.dataset.icon;
+            }
+        });
+
+        // 添加分类项
+        const addCategoryItemBtn = modal.querySelector('#addCategoryItemBtn');
+        const categoryItemsBuilder = modal.querySelector('#categoryItemsBuilder');
+        
+        addCategoryItemBtn.addEventListener('click', () => {
+            this.addCategoryItemInput(categoryItemsBuilder);
+        });
+
+        // 初始添加一个分类项
+        this.addCategoryItemInput(categoryItemsBuilder);
+
+        // 表单提交
+        modal.addEventListener('click', (e) => {
+            // 阻止图标选择按钮触发表单提交
+            if (e.target.hasAttribute('data-action') && e.target.getAttribute('data-action') === 'select-icon') {
+                return; // 不处理图标选择按钮的点击
+            }
+            
+            if (e.target.classList.contains('modal-cancel-btn') || e.target.closest('.modal-cancel-btn')) {
+                window.components.modal.close();
+            } else if (e.target.classList.contains('modal-submit-btn') || e.target.closest('.modal-submit-btn')) {
+                this.submitCreateCustomCategoryGroup();
+            }
+        });
+    }
+
+    addCategoryItemInput(container) {
+        const template = container.querySelector('.category-item-template');
+        const newItem = template.cloneNode(true);
+        newItem.classList.remove('category-item-template');
+        newItem.classList.add('category-item-input');
+
+        // 动态添加颜色选项
+        const colorSelector = newItem.querySelector('.category-color-selector');
+        const colorInput = newItem.querySelector('.category-color-input');
+        
+        // 获取颜色选项
+        const colorOptions = [
+            '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+            '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
+            '#f97316', '#6b7280', '#14b8a6', '#a855f7'
+        ];
+        
+        // 清空现有内容（除了隐藏的input）
+        const hiddenInput = colorSelector.querySelector('.category-color-input');
+        colorSelector.innerHTML = '';
+        
+        // 添加颜色选项
+        colorOptions.forEach((color, index) => {
+            const colorOption = document.createElement('div');
+            colorOption.className = 'color-option';
+            colorOption.dataset.color = color;
+            colorOption.style.backgroundColor = color;
+            if (index === 0) {
+                colorOption.classList.add('selected');
+            }
+            colorSelector.appendChild(colorOption);
+        });
+        
+        // 重新添加隐藏的input并设置默认值
+        colorInput.value = colorOptions[0]; // 设置默认颜色
+        colorSelector.appendChild(hiddenInput);
+        
+        // 绑定颜色选择事件
+        colorSelector.addEventListener('click', (e) => {
+            if (e.target.classList.contains('color-option')) {
+                colorSelector.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                e.target.classList.add('selected');
+                colorInput.value = e.target.dataset.color;
+            }
+        });
+
+        // 绑定图标选择事件
+        const iconSelectBtn = newItem.querySelector('.icon-select-btn');
+        const iconInput = newItem.querySelector('.category-icon-input');
+        
+        // 设置初始状态
+        iconSelectBtn.textContent = '🔘 选择图标';
+        iconSelectBtn.setAttribute('data-action', 'select-icon');
+        iconInput.value = ''; // 确保初始值为空，强制用户选择
+        
+        iconSelectBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            console.log('图标选择按钮被点击');
+            
+            try {
+                await this.showIconSelector((selectedIcon) => {
+                    console.log('图标选择回调被调用，选择的图标:', selectedIcon);
+                    
+                    // 更新按钮文本和样式
+                    iconSelectBtn.textContent = selectedIcon;
+                    iconInput.value = selectedIcon;
+                    
+                    // 更新按钮样式以显示已选择
+                    iconSelectBtn.classList.add('selected');
+                    iconSelectBtn.style.backgroundColor = 'var(--primary-light)';
+                    iconSelectBtn.style.color = 'var(--primary-color)';
+                    iconSelectBtn.style.borderColor = 'var(--primary-color)';
+                    
+                    console.log('图标选择完成，input值:', iconInput.value);
+                });
+            } catch (error) {
+                console.error('图标选择过程中出错:', error);
+                this.showNotification('图标选择失败: ' + error.message, 'error');
+            }
+        });
+
+        // 绑定删除事件
+        const removeBtn = newItem.querySelector('.remove-category-btn');
+        removeBtn.addEventListener('click', () => {
+            if (container.querySelectorAll('.category-item-input').length > 1) {
+                newItem.remove();
+            } else {
+                this.showNotification('至少需要一个分类项', 'warning');
+            }
+        });
+
+        container.appendChild(newItem);
+    }
+
+    // 测试图标选择功能
+    async testIconSelector() {
+        console.log('测试图标选择器...');
+        try {
+            await this.showIconSelector((selectedIcon) => {
+                console.log('测试成功，选择的图标:', selectedIcon);
+                this.showNotification(`测试成功，选择了图标: ${selectedIcon}`, 'success');
+            });
+        } catch (error) {
+            console.error('测试失败:', error);
+            this.showNotification('测试失败: ' + error.message, 'error');
+        }
+    }
+
+    async showIconSelector(callback) {
+        try {
+            console.log('开始显示图标选择器...');
+            const iconOptions = await window.api.getCustomCategoryIconOptions();
+            console.log('获取到图标选项:', iconOptions);
+            
+            // 创建一个简单的弹出层，而不是模态框
+            const overlay = document.createElement('div');
+            overlay.className = 'icon-selector-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10001;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            const popup = document.createElement('div');
+            popup.className = 'icon-selector-popup';
+            popup.style.cssText = `
+                background: var(--bg-primary);
+                border-radius: 12px;
+                padding: 24px;
+                max-width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            `;
+            
+            popup.innerHTML = `
+                <h3 style="margin: 0 0 16px 0; color: var(--text-primary);">选择图标</h3>
+                <div class="icon-selector-content">
+                    ${Object.entries(iconOptions).map(([category, icons]) => `
+                        <div class="icon-category" style="margin-bottom: 20px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: var(--text-secondary);">${this.getIconCategoryName(category)}</h4>
+                            <div class="icon-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 8px;">
+                                ${icons.map(icon => `
+                                    <div class="icon-option selectable-icon" data-icon="${icon}" style="
+                                        width: 40px;
+                                        height: 40px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-size: 20px;
+                                        border: 2px solid var(--border-color);
+                                        border-radius: 8px;
+                                        cursor: pointer;
+                                        transition: all 0.2s ease;
+                                        background: var(--bg-primary);
+                                    ">${icon}</div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 16px; text-align: right;">
+                    <button class="icon-selector-cancel btn btn-secondary">取消</button>
+                </div>
+            `;
+            
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+            
+            // 添加样式
+            const style = document.createElement('style');
+            style.textContent = `
+                .icon-option:hover {
+                    border-color: var(--primary-color) !important;
+                    background: var(--primary-light) !important;
+                    transform: scale(1.1);
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 绑定事件
+            const handleClick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (e.target.classList.contains('selectable-icon')) {
+                    const selectedIcon = e.target.dataset.icon;
+                    console.log('选择了图标:', selectedIcon);
+                    
+                    // 清理
+                    document.body.removeChild(overlay);
+                    document.head.removeChild(style);
+                    
+                    // 调用回调
+                    callback(selectedIcon);
+                } else if (e.target.classList.contains('icon-selector-cancel')) {
+                    // 清理
+                    document.body.removeChild(overlay);
+                    document.head.removeChild(style);
+                }
+            };
+            
+            // 点击遮罩关闭
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                    document.head.removeChild(style);
+                }
+            });
+            
+            popup.addEventListener('click', handleClick);
+
+        } catch (error) {
+            console.error('显示图标选择器失败:', error);
+            this.showNotification('加载图标选择器失败: ' + error.message, 'error');
+        }
+    }
+
+    async submitCreateCustomCategoryGroup() {
+        try {
+            const form = document.getElementById('createCustomCategoryForm');
+            const formData = new FormData(form);
+            
+            const groupName = formData.get('groupName')?.trim();
+            const groupIcon = formData.get('groupIcon');
+            
+            if (!groupName || !groupIcon) {
+                this.showNotification('请填写完整的分组信息', 'error');
+                return;
+            }
+
+            // 收集分类项
+            const categoryItems = [];
+            const categoryInputs = document.querySelectorAll('.category-item-input');
+            
+            for (let i = 0; i < categoryInputs.length; i++) {
+                const input = categoryInputs[i];
+                const key = input.querySelector('.category-key-input').value.trim();
+                const name = input.querySelector('.category-name-input').value.trim();
+                const icon = input.querySelector('.category-icon-input').value;
+                const color = input.querySelector('.category-color-input').value;
+                
+                console.log(`分类项 ${i + 1}:`, { key, name, icon, color });
+                
+                if (!key) {
+                    this.showNotification(`第 ${i + 1} 个分类项缺少分类键（英文标识）`, 'error');
+                    return;
+                }
+                if (!name) {
+                    this.showNotification(`第 ${i + 1} 个分类项缺少分类名称`, 'error');
+                    return;
+                }
+                if (!icon) {
+                    this.showNotification(`第 ${i + 1} 个分类项缺少图标，请点击"选择图标"按钮`, 'error');
+                    return;
+                }
+                if (!color) {
+                    this.showNotification(`第 ${i + 1} 个分类项缺少颜色`, 'error');
+                    return;
+                }
+                
+                categoryItems.push({ key, name, icon, color });
+            }
+
+            if (categoryItems.length === 0) {
+                this.showNotification('至少需要一个分类项', 'error');
+                return;
+            }
+
+            // 生成唯一的分组类型
+            const groupType = `custom_${groupName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}`;
+
+            const groupData = {
+                groupType,
+                groupName,
+                groupIcon,
+                categories: categoryItems
+            };
+
+            // 创建自定义分类组
+            await window.api.createCustomCategoryGroup(groupData);
+            
+            // 关闭模态框
+            window.components.modal.close();
+            
+            // 重新初始化分类筛选器
+            await this.initializeCategoryFilter();
+            
+            // 显示成功消息
+            this.showNotification('自定义分类组创建成功！', 'success');
+            
+        } catch (error) {
+            console.error('创建自定义分类组失败:', error);
+            this.showNotification('创建自定义分类组失败: ' + error.message, 'error');
+        }
+    }
+
+    async deleteCustomCategoryGroup(groupType) {
+        try {
+            const confirmed = await window.components.modal.confirm(
+                '确定要删除这个自定义分类组吗？',
+                '删除后，使用此分类的Prompt和模板将失去分类信息。'
+            );
+            
+            if (confirmed) {
+                await window.api.deleteCustomCategoryGroup(groupType);
+                
+                // 重新初始化分类筛选器
+                await this.initializeCategoryFilter();
+                
+                // 刷新当前显示的管理界面
+                this.showCustomCategoryManagement();
+                
+                this.showNotification('自定义分类组删除成功', 'success');
+            }
+        } catch (error) {
+            console.error('删除自定义分类组失败:', error);
+            this.showNotification('删除自定义分类组失败: ' + error.message, 'error');
+        }
     }
 }
 

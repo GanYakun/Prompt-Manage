@@ -1,5 +1,6 @@
 const PromptManager = require('../managers/PromptManager');
 const TemplateManager = require('../managers/TemplateManager');
+const CustomCategoryManager = require('../managers/CustomCategoryManager');
 const VersionController = require('./VersionController');
 const SearchEngine = require('../engines/SearchEngine');
 const ExportManager = require('../managers/ExportManager');
@@ -11,6 +12,7 @@ class AppController {
     this.versionController = new VersionController();
     this.searchEngine = new SearchEngine();
     this.exportManager = new ExportManager();
+    this.customCategoryManager = null; // 延迟初始化
     this.initialized = false;
   }
 
@@ -23,6 +25,11 @@ class AppController {
         this.searchEngine.initialize(),
         this.exportManager.initialize()
       ]);
+      
+      // 初始化自定义分类管理器，使用与PromptManager相同的数据库实例
+      const db = this.promptManager.repositoryFactory.getDatabaseManager();
+      this.customCategoryManager = new CustomCategoryManager(db);
+      
       this.initialized = true;
     }
   }
@@ -265,6 +272,73 @@ class AppController {
       console.error('Failed to perform maintenance:', error);
       throw new Error(`数据库维护失败: ${error.message}`);
     }
+  }
+
+  // 自定义分类相关方法
+  async getAllCustomCategories() {
+    await this.initialize();
+    return this.customCategoryManager.getAllCustomCategories();
+  }
+
+  async createCustomCategoryGroup(groupData) {
+    await this.initialize();
+    return this.customCategoryManager.createCustomCategoryGroup(groupData);
+  }
+
+  async addCategoryToGroup(groupType, categoryData) {
+    await this.initialize();
+    return this.customCategoryManager.addCategoryToGroup(groupType, categoryData);
+  }
+
+  async updateCustomCategory(id, updates) {
+    await this.initialize();
+    return this.customCategoryManager.updateCustomCategory(id, updates);
+  }
+
+  async deleteCustomCategory(id) {
+    await this.initialize();
+    return this.customCategoryManager.deleteCustomCategory(id);
+  }
+
+  async deleteCustomCategoryGroup(groupType) {
+    await this.initialize();
+    return this.customCategoryManager.deleteCustomCategoryGroup(groupType);
+  }
+
+  async getCustomCategoryGroupStatistics() {
+    await this.initialize();
+    return this.customCategoryManager.getGroupStatistics();
+  }
+
+  getCustomCategoryIconOptions() {
+    if (!this.customCategoryManager) {
+      // 返回默认图标选项
+      return {
+        business: ['🏢', '💼', '📊', '💰', '🏦', '🏭', '🏪', '🏬'],
+        technology: ['💻', '📱', '⚙️', '🔧', '🖥️', '⌨️', '🖱️', '💾'],
+        education: ['📚', '🎓', '✏️', '📝', '🔬', '🧪', '📐', '🎒'],
+        creative: ['🎨', '🖌️', '🎭', '🎪', '🎬', '📷', '🎵', '🎸'],
+        health: ['🏥', '💊', '🩺', '❤️', '🧬', '🦷', '👁️', '🧠'],
+        food: ['🍕', '🍔', '🍜', '🍰', '☕', '🍷', '🥗', '🍎'],
+        travel: ['✈️', '🚗', '🏖️', '🗺️', '🧳', '🏔️', '🏝️', '🚢'],
+        sports: ['⚽', '🏀', '🎾', '🏈', '⚾', '🏐', '🏓', '🏸'],
+        nature: ['🌳', '🌸', '🌊', '⛰️', '🌙', '☀️', '🌈', '🦋'],
+        symbols: ['⭐', '💎', '🔥', '💡', '🎯', '🚀', '⚡', '🌟']
+      };
+    }
+    return this.customCategoryManager.getIconOptions();
+  }
+
+  getCustomCategoryColorOptions() {
+    if (!this.customCategoryManager) {
+      // 返回默认颜色选项
+      return [
+        '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+        '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
+        '#f97316', '#6b7280', '#14b8a6', '#a855f7'
+      ];
+    }
+    return this.customCategoryManager.getColorOptions();
   }
 }
 

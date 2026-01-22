@@ -1934,30 +1934,94 @@ body.modal-open {
 }
 
 .category-list {
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
+}
+
+/* 分类组样式 */
+.category-group {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.category-group:last-child {
+    border-bottom: none;
 }
 
 .category-group-header {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
+    padding: 10px 16px;
     background: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-color);
-    font-size: 12px;
+    cursor: pointer;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.category-group-header:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+/* 展开/收起图标 */
+.category-expand-icon {
+    margin-right: 8px;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+    color: var(--text-tertiary);
+}
+
+.category-expand-icon.expanded {
+    transform: rotate(0deg);
+}
+
+.category-expand-icon:not(.expanded) {
+    transform: rotate(-90deg);
 }
 
 .category-group-icon {
-    margin-right: 6px;
+    margin-right: 8px;
     font-size: 14px;
 }
 
 .category-group-name {
     flex: 1;
+}
+
+.category-group-count {
+    background: var(--bg-primary);
+    color: var(--text-tertiary);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* 分类项容器 */
+.category-items {
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.category-items.expanded {
+    max-height: 500px;
+    opacity: 1;
+}
+
+.category-items.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* 分类分隔线 */
+.category-separator {
+    height: 1px;
+    background: var(--border-color);
+    margin: 8px 16px;
 }
 
 .category-item {
@@ -2275,5 +2339,300 @@ body.modal-open {
 @media (max-width: 1024px) {
     .item-list.grid-view {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+
+/* 自定义分类管理样式 */
+.custom-category-management {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.custom-category-add-btn {
+    width: 100%;
+    font-size: 12px;
+    padding: 8px 12px;
+}
+
+.custom-category-modal .modal {
+    max-width: 900px;
+}
+
+.custom-category-management-content {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.existing-groups-section,
+.create-group-section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.existing-groups-section:last-child,
+.create-group-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.existing-groups-section h3,
+.create-group-section h3 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.existing-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.group-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.group-icon {
+    font-size: 20px;
+}
+
+.group-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.group-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.group-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.empty-state-small {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+/* 图标选择器 */
+.icon-selector {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--bg-secondary);
+}
+
+.icon-category {
+    margin-bottom: 20px;
+}
+
+.icon-category:last-child {
+    margin-bottom: 0;
+}
+
+.icon-category h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 8px;
+}
+
+.icon-option {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+}
+
+.icon-option:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.icon-option.selected {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+}
+
+/* 分类项构建器 */
+.category-items-builder {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    margin-bottom: 12px;
+}
+
+.category-item-template {
+    display: none;
+}
+
+.category-item-input {
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+}
+
+.category-item-input:last-child {
+    margin-bottom: 0;
+}
+
+.category-item-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.category-key-input,
+.category-name-input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.icon-select-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 100px;
+    transition: all 0.2s ease;
+}
+
+.icon-select-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+}
+
+.icon-select-btn.selected {
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.category-color-selector {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.color-option {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: var(--text-primary);
+    transform: scale(1.2);
+}
+
+.remove-category-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* 图标选择器模态框 */
+.icon-selector-modal {
+    padding: 24px;
+}
+
+.icon-selector-modal h3 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+}
+
+.icon-selector-content {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+.selectable-icon {
+    transition: all 0.2s ease;
+}
+
+.selectable-icon:hover {
+    transform: scale(1.1);
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .custom-category-modal .modal {
+        margin: 10px;
+        max-width: calc(100vw - 20px);
+    }
+    
+    .category-item-inputs {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .existing-group-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .group-actions {
+        justify-content: center;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(35px, 1fr));
+    }
+    
+    .icon-option {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
     }
 }

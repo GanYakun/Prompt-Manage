@@ -176,6 +176,52 @@ class API {
         if (!this.electronAPI) throw new Error('Electron API不可用');
         return await this.electronAPI.getDataPath();
     }
+
+    // 自定义分类API
+    async getAllCustomCategories() {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return await this.electronAPI.getAllCustomCategories();
+    }
+
+    async createCustomCategoryGroup(groupData) {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return await this.electronAPI.createCustomCategoryGroup(groupData);
+    }
+
+    async addCategoryToGroup(groupType, categoryData) {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return await this.electronAPI.addCategoryToGroup(groupType, categoryData);
+    }
+
+    async updateCustomCategory(id, updates) {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return await this.electronAPI.updateCustomCategory(id, updates);
+    }
+
+    async deleteCustomCategory(id) {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return await this.electronAPI.deleteCustomCategory(id);
+    }
+
+    async deleteCustomCategoryGroup(groupType) {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return await this.electronAPI.deleteCustomCategoryGroup(groupType);
+    }
+
+    async getCustomCategoryGroupStatistics() {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return await this.electronAPI.getCustomCategoryGroupStatistics();
+    }
+
+    getCustomCategoryIconOptions() {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return this.electronAPI.getCustomCategoryIconOptions();
+    }
+
+    getCustomCategoryColorOptions() {
+        if (!this.electronAPI) throw new Error('Electron API不可用');
+        return this.electronAPI.getCustomCategoryColorOptions();
+    }
 }
 
 // 错误处理装饰器

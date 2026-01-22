@@ -55,6 +55,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   performMaintenance: () => ipcRenderer.invoke('perform-maintenance'),
   getExportFormats: () => ipcRenderer.invoke('get-export-formats'),
 
+  // Custom categories
+  getAllCustomCategories: () => ipcRenderer.invoke('get-all-custom-categories'),
+  createCustomCategoryGroup: (groupData) => ipcRenderer.invoke('create-custom-category-group', groupData),
+  addCategoryToGroup: (groupType, categoryData) => ipcRenderer.invoke('add-category-to-group', groupType, categoryData),
+  updateCustomCategory: (id, updates) => ipcRenderer.invoke('update-custom-category', id, updates),
+  deleteCustomCategory: (id) => ipcRenderer.invoke('delete-custom-category', id),
+  deleteCustomCategoryGroup: (groupType) => ipcRenderer.invoke('delete-custom-category-group', groupType),
+  getCustomCategoryGroupStatistics: () => ipcRenderer.invoke('get-custom-category-group-statistics'),
+  getCustomCategoryIconOptions: () => ipcRenderer.invoke('get-custom-category-icon-options'),
+  getCustomCategoryColorOptions: () => ipcRenderer.invoke('get-custom-category-color-options'),
+
   // Menu event listeners
   onMenuNewPrompt: (callback) => ipcRenderer.on('menu-new-prompt', callback),
   onMenuNewTemplate: (callback) => ipcRenderer.on('menu-new-template', callback),

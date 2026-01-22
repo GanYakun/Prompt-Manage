@@ -68,9 +68,9 @@ class PromptVersionManagerApp {
       this.mainWindow.show();
       
       // Open dev tools in development
-      if (process.argv.includes('--dev')) {
-        this.mainWindow.webContents.openDevTools();
-      }
+      // if (process.argv.includes('--dev')) {
+      //   this.mainWindow.webContents.openDevTools();
+      // }
     });
 
     this.mainWindow.on('closed', () => {
@@ -544,6 +544,71 @@ class PromptVersionManagerApp {
 
     ipcMain.handle('get-export-formats', (event) => {
       return this.appController.getExportFormats();
+    });
+
+    // Custom categories
+    ipcMain.handle('get-all-custom-categories', async (event) => {
+      try {
+        return await this.appController.getAllCustomCategories();
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('create-custom-category-group', async (event, groupData) => {
+      try {
+        return await this.appController.createCustomCategoryGroup(groupData);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('add-category-to-group', async (event, groupType, categoryData) => {
+      try {
+        return await this.appController.addCategoryToGroup(groupType, categoryData);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('update-custom-category', async (event, id, updates) => {
+      try {
+        return await this.appController.updateCustomCategory(id, updates);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('delete-custom-category', async (event, id) => {
+      try {
+        return await this.appController.deleteCustomCategory(id);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('delete-custom-category-group', async (event, groupType) => {
+      try {
+        return await this.appController.deleteCustomCategoryGroup(groupType);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('get-custom-category-group-statistics', async (event) => {
+      try {
+        return await this.appController.getCustomCategoryGroupStatistics();
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('get-custom-category-icon-options', (event) => {
+      return this.appController.getCustomCategoryIconOptions();
+    });
+
+    ipcMain.handle('get-custom-category-color-options', (event) => {
+      return this.appController.getCustomCategoryColorOptions();
     });
   }
 }

@@ -94,6 +94,25 @@ class DatabaseManager {
       )
     `);
 
+    // Custom categories table
+    await this.run(`
+      CREATE TABLE IF NOT EXISTS custom_categories (
+        id TEXT PRIMARY KEY,
+        group_type TEXT NOT NULL,
+        group_name TEXT NOT NULL,
+        group_icon TEXT NOT NULL,
+        category_key TEXT NOT NULL,
+        category_name TEXT NOT NULL,
+        category_icon TEXT NOT NULL,
+        category_color TEXT DEFAULT '#3b82f6',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        is_active BOOLEAN DEFAULT TRUE,
+        sort_order INTEGER DEFAULT 0,
+        UNIQUE(group_type, category_key)
+      )
+    `);
+
     // Search index table
     await this.run(`
       CREATE TABLE IF NOT EXISTS search_index (
@@ -116,7 +135,10 @@ class DatabaseManager {
       'CREATE INDEX IF NOT EXISTS idx_prompt_versions_created_at ON prompt_versions(created_at)',
       'CREATE INDEX IF NOT EXISTS idx_templates_created_at ON templates(created_at)',
       'CREATE INDEX IF NOT EXISTS idx_search_index_entity_id ON search_index(entity_id)',
-      'CREATE INDEX IF NOT EXISTS idx_search_index_entity_type ON search_index(entity_type)'
+      'CREATE INDEX IF NOT EXISTS idx_search_index_entity_type ON search_index(entity_type)',
+      'CREATE INDEX IF NOT EXISTS idx_custom_categories_group_type ON custom_categories(group_type)',
+      'CREATE INDEX IF NOT EXISTS idx_custom_categories_active ON custom_categories(is_active)',
+      'CREATE INDEX IF NOT EXISTS idx_custom_categories_sort ON custom_categories(sort_order)'
     ];
 
     for (const indexSql of indexes) {
