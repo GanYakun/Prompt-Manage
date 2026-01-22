@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt版本管理器 - 专业版</title>
+    <title>我的灵感笔记本 📝</title>
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/themes.css">
@@ -34,17 +34,17 @@
                 <div class="logo">
                     <div class="logo-icon">📝</div>
                     <div class="logo-text">
-                        <h1>Prompt管理器</h1>
-                        <span class="version">专业版 v1.0</span>
+                        <h1>我的灵感笔记本</h1>
+                        <span class="version">记录每一个好想法 ✨</span>
                     </div>
                 </div>
                 
                 <div class="search-container">
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="搜索Prompt和模板..." />
+                        <input type="text" id="searchInput" placeholder="找找我写过什么..." />
                         <button class="search-btn" id="searchBtn">🔍</button>
                     </div>
-                    <button class="advanced-search-btn" id="advancedSearchBtn">高级搜索</button>
+                    <button class="advanced-search-btn" id="advancedSearchBtn">精确查找</button>
                 </div>
             </div>
             
@@ -52,12 +52,12 @@
                 <div class="nav-tabs">
                     <button class="nav-tab active" data-tab="prompts">
                         <span class="tab-icon">💡</span>
-                        <span class="tab-text">Prompt库</span>
+                        <span class="tab-text">我的想法</span>
                         <span class="tab-count" id="promptCount">0</span>
                     </button>
                     <button class="nav-tab" data-tab="templates">
                         <span class="tab-icon">📋</span>
-                        <span class="tab-text">模板库</span>
+                        <span class="tab-text">常用模板</span>
                         <span class="tab-count" id="templateCount">0</span>
                     </button>
                 </div>
@@ -65,13 +65,13 @@
                 <!-- 分类筛选器 -->
                 <div class="category-filter" id="categoryFilter">
                     <div class="filter-header">
-                        <span class="filter-title">分类筛选</span>
-                        <button class="filter-clear" id="clearCategoryFilter" title="清除筛选">✕</button>
+                        <span class="filter-title">📂 按类别查看</span>
+                        <button class="filter-clear" id="clearCategoryFilter" title="看全部">✕</button>
                     </div>
                     <div class="category-list" id="categoryList">
                         <div class="category-item active" data-category="all">
-                            <span class="category-icon">📁</span>
-                            <span class="category-name">全部</span>
+                            <span class="category-icon">🌟</span>
+                            <span class="category-name">全部想法</span>
                             <span class="category-count" id="allCount">0</span>
                         </div>
                     </div>
@@ -80,12 +80,12 @@
             
             <div class="category-actions">
                 <button class="action-btn primary" id="newPromptBtn">
-                    <span class="btn-icon">➕</span>
-                    新建Prompt
+                    <span class="btn-icon">✍️</span>
+                    写个新想法
                 </button>
                 <button class="action-btn secondary" id="newTemplateBtn">
                     <span class="btn-icon">📄</span>
-                    新建模板
+                    做个模板
                 </button>
             </div>
         </div>
@@ -94,23 +94,23 @@
         <div class="list-panel">
             <div class="list-header">
                 <div class="list-title">
-                    <h3 id="listTitle">全部Prompt</h3>
-                    <span class="list-count" id="listCount">0 项</span>
+                    <h3 id="listTitle">我的所有想法</h3>
+                    <span class="list-count" id="listCount">0 个想法</span>
                 </div>
                 <div class="list-actions">
                     <div class="view-mode-buttons">
-                        <button class="icon-btn active" id="listViewBtn" title="列表视图">📋</button>
-                        <button class="icon-btn" id="gridViewBtn" title="网格视图">⊞</button>
+                        <button class="icon-btn active" id="listViewBtn" title="列表查看">📋</button>
+                        <button class="icon-btn" id="gridViewBtn" title="卡片查看">⊞</button>
                     </div>
                     <div class="dropdown">
-                        <button class="icon-btn dropdown-toggle" id="sortBtn" title="排序">
-                            ↕️<span class="sort-indicator">↓</span>
+                        <button class="icon-btn dropdown-toggle" id="sortBtn" title="排序方式">
+                            📅<span class="sort-indicator">↓</span>
                         </button>
                         <div class="dropdown-menu">
-                            <a href="#" data-sort="updated_at" class="active">按更新时间</a>
-                            <a href="#" data-sort="created_at">按创建时间</a>
-                            <a href="#" data-sort="title">按标题</a>
-                            <a href="#" data-sort="usage_count">按使用次数</a>
+                            <a href="#" data-sort="updated_at" class="active">最近修改的</a>
+                            <a href="#" data-sort="created_at">最新创建的</a>
+                            <a href="#" data-sort="title">按名字排序</a>
+                            <a href="#" data-sort="usage_count">最常用的</a>
                         </div>
                     </div>
                 </div>
@@ -119,12 +119,12 @@
             <!-- 批量操作工具栏 -->
             <div class="bulk-actions-toolbar" id="bulkActionsToolbar" style="display: none;">
                 <div class="bulk-actions-info">
-                    <span id="selectedCount">0</span> 项已选择
+                    已选择 <span id="selectedCount">0</span> 个想法
                 </div>
                 <div class="bulk-actions-buttons">
                     <button class="btn btn-sm btn-error" id="bulkDeleteBtn">
                         <span class="btn-icon">🗑️</span>
-                        批量删除
+                        删除选中的
                     </button>
                     <button class="btn btn-sm btn-secondary" id="bulkCancelBtn">
                         取消选择
@@ -136,13 +136,13 @@
                 <div id="promptsList" class="item-list active">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
-                        <p>正在加载Prompt...</p>
+                        <p>正在整理你的想法...</p>
                     </div>
                 </div>
                 <div id="templatesList" class="item-list">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
-                        <p>正在加载模板...</p>
+                        <p>正在准备模板...</p>
                     </div>
                 </div>
             </div>
@@ -152,19 +152,19 @@
         <div class="detail-panel">
             <div class="detail-header">
                 <div class="header-left">
-                    <h2 id="contentTitle">欢迎使用Prompt版本管理器</h2>
+                    <h2 id="contentTitle">欢迎回来！👋</h2>
                     <div class="breadcrumb" id="breadcrumb"></div>
                 </div>
                 <div class="header-right">
                     <div class="header-actions">
-                        <button class="icon-btn" id="statsBtn" title="统计信息">📊</button>
-                        <button class="icon-btn" id="settingsBtn" title="设置">⚙️</button>
+                        <button class="icon-btn" id="statsBtn" title="看看数据">📊</button>
+                        <button class="icon-btn" id="settingsBtn" title="个人设置">⚙️</button>
                         <div class="dropdown">
-                            <button class="icon-btn dropdown-toggle" id="exportBtn" title="导出">📤</button>
+                            <button class="icon-btn dropdown-toggle" id="exportBtn" title="备份导出">💾</button>
                             <div class="dropdown-menu">
-                                <a href="#" id="exportAllBtn">导出全部数据</a>
-                                <a href="#" id="exportTemplatesBtn">导出模板库</a>
-                                <a href="#" id="importBtn">导入数据</a>
+                                <a href="#" id="exportAllBtn">备份所有内容</a>
+                                <a href="#" id="exportTemplatesBtn">只备份模板</a>
+                                <a href="#" id="importBtn">导入备份文件</a>
                             </div>
                         </div>
                     </div>
@@ -175,42 +175,42 @@
                 <!-- 欢迎页面 -->
                 <div id="welcomeView" class="welcome-view">
                     <div class="welcome-hero">
-                        <div class="hero-icon">🚀</div>
-                        <h1>专业的Prompt版本管理解决方案</h1>
-                        <p>智能版本控制 • 模板复用 • 分类管理 • 数据导出</p>
+                        <div class="hero-icon">🌟</div>
+                        <h1>你的专属灵感收集器</h1>
+                        <p>记录想法 • 整理思路 • 随时回顾 • 安全备份</p>
                     </div>
                     
                     <div class="feature-grid">
                         <div class="feature-card">
-                            <div class="feature-icon">🔄</div>
-                            <h3>自动版本控制</h3>
-                            <p>每次修改自动创建版本，支持版本对比和回滚</p>
+                            <div class="feature-icon">📚</div>
+                            <h3>记录每个版本</h3>
+                            <p>每次修改都会保存，再也不怕改坏了</p>
                         </div>
                         <div class="feature-card">
-                            <div class="feature-icon">📋</div>
-                            <h3>模板系统</h3>
-                            <p>将常用Prompt保存为模板，提高工作效率</p>
+                            <div class="feature-icon">🎯</div>
+                            <h3>制作常用模板</h3>
+                            <p>把好用的格式保存下来，下次直接用</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon">🏷️</div>
-                            <h3>分类管理</h3>
-                            <p>按行业、用途、难度等维度分类管理</p>
+                            <h3>分类整理</h3>
+                            <p>按工作、生活、学习等分类，井井有条</p>
                         </div>
                         <div class="feature-card">
-                            <div class="feature-icon">💾</div>
+                            <div class="feature-icon">🔒</div>
                             <h3>数据安全</h3>
-                            <p>本地存储，支持导出备份，数据完全可控</p>
+                            <p>所有内容都在你的电脑上，随时备份</p>
                         </div>
                     </div>
                     
                     <div class="welcome-actions">
                         <button class="btn btn-primary btn-large" id="getStartedBtn">
                             <span class="btn-icon">✨</span>
-                            开始使用
+                            开始记录想法
                         </button>
                         <button class="btn btn-secondary btn-large" id="importDataBtn">
                             <span class="btn-icon">📥</span>
-                            导入现有数据
+                            导入之前的内容
                         </button>
                     </div>
                 </div>

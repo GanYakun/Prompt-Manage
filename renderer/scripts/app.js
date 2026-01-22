@@ -33,61 +33,55 @@ class PromptManagerApp {
         const savedExpandedState = JSON.parse(localStorage.getItem('categoryExpandedState') || '{}');
         
         return {
-            // 按行业分类
-            industry: {
-                name: '行业应用',
-                icon: '🏢',
-                expanded: savedExpandedState.industry !== false, // 默认展开，除非明确设置为false
+            // 按使用场景分类
+            scene: {
+                name: '使用场景',
+                icon: '🎯',
+                expanded: savedExpandedState.scene !== false, // 默认展开
                 items: {
-                    'tech': { name: '科技互联网', icon: '💻', color: '#3b82f6' },
-                    'education': { name: '教育培训', icon: '📚', color: '#10b981' },
-                    'marketing': { name: '市场营销', icon: '📈', color: '#f59e0b' },
-                    'finance': { name: '金融投资', icon: '�', colorr: '#8b5cf6' },
-                    'healthcare': { name: '医疗健康', icon: '🏥', color: '#ef4444' },
-                    'legal': { name: '法律咨询', icon: '⚖️', color: '#6b7280' },
-                    'creative': { name: '创意设计', icon: '🎨', color: '#ec4899' },
-                    'retail': { name: '零售电商', icon: '🛍️', color: '#06b6d4' }
+                    'work': { name: '工作相关', icon: '💼', color: '#3b82f6' },
+                    'study': { name: '学习笔记', icon: '📚', color: '#10b981' },
+                    'life': { name: '生活记录', icon: '🏠', color: '#f59e0b' },
+                    'creative': { name: '创意想法', icon: '🎨', color: '#8b5cf6' },
+                    'project': { name: '项目规划', icon: '📋', color: '#ef4444' },
+                    'communication': { name: '沟通交流', icon: '💬', color: '#06b6d4' }
                 }
             },
-            // 按用途分类
-            purpose: {
-                name: '用途类型',
-                icon: '�',
-                expanded: savedExpandedState.purpose !== false, // 默认展开
+            // 按内容类型分类
+            type: {
+                name: '内容类型',
+                icon: '📝',
+                expanded: savedExpandedState.type !== false, // 默认展开
                 items: {
-                    'writing': { name: '内容写作', icon: '✍️', color: '#10b981' },
-                    'analysis': { name: '数据分析', icon: '�',  color: '#3b82f6' },
-                    'translation': { name: '翻译润色', icon: '🌐', color: '#8b5cf6' },
-                    'coding': { name: '编程开发', icon: '💻', color: '#f59e0b' },
-                    'brainstorm': { name: '头脑风暴', icon: '💡', color: '#ec4899' },
-                    'research': { name: '研究调研', icon: '🔍', color: '#06b6d4' },
-                    'planning': { name: '规划策略', icon: '📋', color: '#ef4444' },
-                    'communication': { name: '沟通协调', icon: '💬', color: '#6b7280' }
+                    'question': { name: '问题提问', icon: '❓', color: '#10b981' },
+                    'instruction': { name: '操作指南', icon: '📖', color: '#3b82f6' },
+                    'brainstorm': { name: '头脑风暴', icon: '💡', color: '#f59e0b' },
+                    'analysis': { name: '分析总结', icon: '📊', color: '#8b5cf6' },
+                    'writing': { name: '文字创作', icon: '✍️', color: '#ec4899' },
+                    'planning': { name: '计划安排', icon: '📅', color: '#06b6d4' }
                 }
             },
-            // 按难度分类
-            difficulty: {
-                name: '复杂程度',
-                icon: '📊',
-                expanded: savedExpandedState.difficulty === true, // 默认收起
+            // 按重要程度分类
+            priority: {
+                name: '重要程度',
+                icon: '⭐',
+                expanded: savedExpandedState.priority === true, // 默认收起
                 items: {
-                    'basic': { name: '基础入门', icon: '🟢', color: '#10b981' },
-                    'intermediate': { name: '中级进阶', icon: '🟡', color: '#f59e0b' },
-                    'advanced': { name: '高级专业', icon: '🔴', color: '#ef4444' }
+                    'high': { name: '很重要', icon: '🔥', color: '#ef4444' },
+                    'medium': { name: '一般重要', icon: '⚡', color: '#f59e0b' },
+                    'low': { name: '不太重要', icon: '💫', color: '#10b981' }
                 }
             },
-            // 按格式分类
-            format: {
-                name: '输出格式',
-                icon: '📄',
-                expanded: savedExpandedState.format === true, // 默认收起
+            // 按使用频率分类
+            frequency: {
+                name: '使用频率',
+                icon: '🔄',
+                expanded: savedExpandedState.frequency === true, // 默认收起
                 items: {
-                    'text': { name: '纯文本', icon: '📝', color: '#6b7280' },
-                    'list': { name: '列表格式', icon: '📋', color: '#3b82f6' },
-                    'table': { name: '表格数据', icon: '📊', color: '#10b981' },
-                    'code': { name: '代码片段', icon: '💻', color: '#8b5cf6' },
-                    'json': { name: 'JSON数据', icon: '🔧', color: '#f59e0b' },
-                    'markdown': { name: 'Markdown', icon: '📄', color: '#ec4899' }
+                    'daily': { name: '每天都用', icon: '🌟', color: '#ef4444' },
+                    'weekly': { name: '经常使用', icon: '📅', color: '#f59e0b' },
+                    'monthly': { name: '偶尔使用', icon: '📝', color: '#10b981' },
+                    'archive': { name: '存档备用', icon: '📦', color: '#6b7280' }
                 }
             }
         };
@@ -647,8 +641,8 @@ class PromptManagerApp {
         this.updateListTitle('Prompt', filteredPrompts.length);
 
         if (filteredPrompts.length === 0) {
-            this.showEmptyState('promptsList', '没有找到匹配的Prompt', '尝试调整筛选条件或创建新的Prompt', [
-                { text: '创建Prompt', action: () => this.createNewPrompt(), primary: true },
+            this.showEmptyState('promptsList', '没有找到相关的想法', '试试调整筛选条件，或者记录一个新想法', [
+                { text: '写个想法', action: () => this.createNewPrompt(), primary: true },
                 { text: '清除筛选', action: () => this.clearCategoryFilter() }
             ]);
             return;
@@ -692,19 +686,19 @@ class PromptManagerApp {
         const listCount = document.getElementById('listCount');
         
         if (listTitle) {
-            let title = `全部${type}`;
+            let title = `我的所有${type === 'Prompt' ? '想法' : '模板'}`;
             if (this.currentCategoryFilter !== 'all') {
                 const [categoryType, categoryKey] = this.currentCategoryFilter.split(':');
                 const categoryData = this.categories[categoryType];
                 if (categoryData && categoryData.items[categoryKey]) {
-                    title = `${categoryData.items[categoryKey].name} - ${type}`;
+                    title = `${categoryData.items[categoryKey].name} - ${type === 'Prompt' ? '想法' : '模板'}`;
                 }
             }
             listTitle.textContent = title;
         }
         
         if (listCount) {
-            listCount.textContent = `${count} 项`;
+            listCount.textContent = `${count} 个${type === 'Prompt' ? '想法' : '模板'}`;
         }
     }
 
@@ -766,7 +760,7 @@ class PromptManagerApp {
         
         const addButton = document.createElement('button');
         addButton.className = 'btn btn-sm btn-outline custom-category-add-btn';
-        addButton.innerHTML = '<span class="btn-icon">➕</span>添加自定义分类';
+        addButton.innerHTML = '<span class="btn-icon">➕</span>添加我的分类';
         addButton.addEventListener('click', () => this.showCustomCategoryManagement());
         
         managementContainer.appendChild(addButton);
@@ -828,14 +822,14 @@ class PromptManagerApp {
             const content = `
                 <div class="modern-modal-content">
                     <div class="modal-header-modern">
-                        <h2 class="modal-title-modern">自定义分类管理</h2>
-                        <p class="modal-subtitle">创建和管理您的专属分类体系</p>
+                        <h2 class="modal-title-modern">整理我的分类 📂</h2>
+                        <p class="modal-subtitle">创建属于你自己的分类方式</p>
                     </div>
                     
                     <div class="custom-category-management-content" style="padding: 32px;">
                         <!-- 现有分类组 -->
                         <div class="existing-groups-section">
-                            <h3>现有自定义分类组</h3>
+                            <h3>我的分类</h3>
                             <div class="existing-groups-list" id="existingGroupsList">
                                 ${statistics.length > 0 ? 
                                     statistics.map(group => `
@@ -858,19 +852,19 @@ class PromptManagerApp {
 
                         <!-- 创建新分类组 -->
                         <div class="create-group-section">
-                            <h3>创建新分类组</h3>
+                            <h3>添加新分类</h3>
                             <form id="createCustomCategoryForm">
                                 <div class="form-group-modern">
                                     <label class="form-label-modern">
-                                        <span class="label-text">分组名称</span>
+                                        <span class="label-text">分类名称</span>
                                         <span class="label-required">*</span>
                                     </label>
-                                    <input type="text" name="groupName" class="form-input-modern" placeholder="例如：项目类型、客户行业..." required>
+                                    <input type="text" name="groupName" class="form-input-modern" placeholder="比如：我的项目、学习笔记、工作计划..." required>
                                 </div>
 
                                 <div class="form-group-modern">
                                     <label class="form-label-modern">
-                                        <span class="label-text">分组图标</span>
+                                        <span class="label-text">选个图标</span>
                                         <span class="label-required">*</span>
                                     </label>
                                     <div class="icon-selector" id="groupIconSelector">
@@ -890,10 +884,10 @@ class PromptManagerApp {
 
                                 <div class="form-group-modern">
                                     <label class="form-label-modern">
-                                        <span class="label-text">分类项</span>
+                                        <span class="label-text">具体分类</span>
                                         <span class="label-required">*</span>
                                     </label>
-                                    <div class="input-hint">为每个分类项填写英文键名、中文名称，并选择图标和颜色</div>
+                                    <div class="input-hint">为这个分类添加具体的子项目，比如"工作"下面可以有"会议记录"、"项目计划"等</div>
                                     <div class="category-items-builder" id="categoryItemsBuilder">
                                         <div class="category-item-template">
                                             <div class="category-item-inputs">
@@ -924,7 +918,7 @@ class PromptManagerApp {
                         </button>
                         <button type="button" class="btn-modern btn-primary-modern modal-submit-btn">
                             <span class="btn-icon">✓</span>
-                            创建分类组
+                            保存分类
                         </button>
                     </div>
                 </div>
@@ -1111,8 +1105,8 @@ class PromptManagerApp {
         if (!container) return;
 
         if (this.prompts.length === 0) {
-            this.showEmptyState('promptsList', '还没有Prompt', '创建您的第一个Prompt开始使用', [
-                { text: '创建Prompt', action: () => this.createNewPrompt(), primary: true }
+            this.showEmptyState('promptsList', '还没有记录想法呢', '写下你的第一个想法开始吧！', [
+                { text: '写个想法', action: () => this.createNewPrompt(), primary: true }
             ]);
             return;
         }
@@ -1608,14 +1602,14 @@ class PromptManagerApp {
         const content = `
             <div class="modern-modal-content">
                 <div class="modal-header-modern">
-                    <h2 class="modal-title-modern">创建新Prompt</h2>
-                    <p class="modal-subtitle">创建一个新的Prompt并开始版本管理</p>
+                    <h2 class="modal-title-modern">记录新想法 ✍️</h2>
+                    <p class="modal-subtitle">写下你的灵感，我来帮你保存每个版本</p>
                 </div>
                 
                 <form id="createPromptForm" class="modern-form">
                     <div class="form-group-modern">
                         <label for="promptTitle" class="form-label-modern">
-                            <span class="label-text">标题</span>
+                            <span class="label-text">给想法起个名字</span>
                             <span class="label-required">*</span>
                         </label>
                         <input 
@@ -1623,57 +1617,57 @@ class PromptManagerApp {
                             id="promptTitle" 
                             name="title" 
                             required 
-                            placeholder="为你的Prompt起个名字..." 
+                            placeholder="比如：周末计划、工作思路、学习笔记..." 
                             class="form-input-modern"
                             autocomplete="off"
                         >
-                        <div class="input-hint">简洁明了的标题有助于快速识别</div>
+                        <div class="input-hint">简单描述一下这个想法是关于什么的</div>
                     </div>
                     
                     <div class="form-group-modern">
                         <label for="promptContent" class="form-label-modern">
-                            <span class="label-text">内容</span>
+                            <span class="label-text">详细内容</span>
                             <span class="label-required">*</span>
                         </label>
                         <textarea 
                             id="promptContent" 
                             name="content" 
                             required 
-                            placeholder="输入你的Prompt内容..." 
+                            placeholder="在这里写下你的想法、计划、思路或者任何你想记录的内容..." 
                             rows="8" 
                             class="form-textarea-modern"
                         ></textarea>
-                        <div class="input-hint">支持多行文本，可以包含变量占位符如 {{变量名}}</div>
+                        <div class="input-hint">把你的想法详细写下来，想写多少写多少</div>
                     </div>
                     
                     <div class="form-group-modern">
                         <label for="promptTags" class="form-label-modern">
-                            <span class="label-text">标签</span>
+                            <span class="label-text">添加标签</span>
                             <span class="label-optional">可选</span>
                         </label>
                         <input 
                             type="text" 
                             id="promptTags" 
                             name="tags" 
-                            placeholder="AI, 写作, 创意..." 
+                            placeholder="工作, 学习, 生活..." 
                             class="form-input-modern"
                             autocomplete="off"
                         >
-                        <div class="input-hint">用逗号分隔多个标签，便于分类和搜索</div>
+                        <div class="input-hint">用逗号分隔多个标签，方便以后查找</div>
                     </div>
                     
                     ${categorySelectionHtml}
                     
                     <div class="form-group-modern">
                         <label for="promptNote" class="form-label-modern">
-                            <span class="label-text">版本说明</span>
+                            <span class="label-text">备注说明</span>
                             <span class="label-optional">可选</span>
                         </label>
                         <input 
                             type="text" 
                             id="promptNote" 
                             name="note" 
-                            placeholder="初始版本" 
+                            placeholder="记录一下这次写了什么..." 
                             value="初始版本" 
                             class="form-input-modern"
                             autocomplete="off"
@@ -1689,7 +1683,7 @@ class PromptManagerApp {
                     </button>
                     <button type="button" class="btn-modern btn-primary-modern modal-submit-btn">
                         <span class="btn-icon">✓</span>
-                        创建Prompt
+                        保存想法
                     </button>
                 </div>
             </div>
@@ -1808,7 +1802,7 @@ class PromptManagerApp {
             }
             
             // 显示成功消息
-            this.showNotification('Prompt创建成功！', 'success');
+            this.showNotification('想法保存成功！✨', 'success');
             
         } catch (error) {
             console.error('创建Prompt失败:', error);
@@ -2085,8 +2079,8 @@ class PromptManagerApp {
             const content = `
                 <div class="modern-modal-content">
                     <div class="modal-header-modern">
-                        <h2 class="modal-title-modern">编辑Prompt</h2>
-                        <p class="modal-subtitle">修改Prompt内容并创建新版本</p>
+                        <h2 class="modal-title-modern">修改想法 ✏️</h2>
+                        <p class="modal-subtitle">更新你的想法，每次修改都会保存历史版本</p>
                     </div>
                     
                     <form id="editPromptForm" class="modern-form">
@@ -2230,7 +2224,7 @@ class PromptManagerApp {
             await this.selectPrompt(promptId);
             
             // 显示成功消息
-            this.showNotification('Prompt更新成功！', 'success');
+            this.showNotification('想法更新成功！📝', 'success');
             
         } catch (error) {
             console.error('更新Prompt失败:', error);
@@ -2440,7 +2434,7 @@ class PromptManagerApp {
                         this.showWelcomeView();
                     }
                     
-                    this.showNotification('Prompt删除成功', 'success');
+                    this.showNotification('想法删除成功 🗑️', 'success');
                 } catch (error) {
                     console.error('删除Prompt失败:', error);
                     this.showNotification('删除Prompt失败: ' + error.message, 'error');
@@ -2860,8 +2854,8 @@ class PromptManagerApp {
             const content = `
                 <div class="modern-modal-content">
                     <div class="modal-header-modern">
-                        <h2 class="modal-title-modern">从模板创建Prompt</h2>
-                        <p class="modal-subtitle">使用模板快速创建新的Prompt</p>
+                        <h2 class="modal-title-modern">用模板写想法 📋</h2>
+                        <p class="modal-subtitle">基于现有模板快速创建新想法</p>
                     </div>
                     
                     <form id="createFromTemplateForm" class="modern-form">

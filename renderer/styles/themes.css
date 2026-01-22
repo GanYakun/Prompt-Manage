@@ -1,36 +1,135 @@
 /* 主题样式 */
 
-/* 深色主题 */
+/* 浅色主题 - 温暖生活化 */
+:root, [data-theme="light"] {
+    --primary-color: #f59e0b;
+    --primary-hover: #d97706;
+    --primary-light: #fef3c7;
+    --primary-dark: #92400e;
+    --primary-bg: #fffbeb;
+    
+    --bg-primary: #fefefe;
+    --bg-secondary: #fafaf9;
+    --bg-tertiary: #f5f5f4;
+    --bg-dark: #292524;
+    
+    --text-primary: #292524;
+    --text-secondary: #57534e;
+    --text-tertiary: #78716c;
+    --text-inverse: #fefefe;
+    
+    --border-color: #e7e5e4;
+    --border-hover: #d6d3d1;
+    --border-focus: #f59e0b;
+    --border-light: #f5f5f4;
+    
+    --success-color: #10b981;
+    --success-bg: #d1fae5;
+    --warning-color: #f59e0b;
+    --warning-bg: #fef3c7;
+    --error-color: #ef4444;
+    --error-bg: #fee2e2;
+    --info-color: #3b82f6;
+    --info-bg: #dbeafe;
+    
+    --hover-bg: #fafaf9;
+    --active-bg: #f5f5f4;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    
+    --transition-fast: all 0.15s ease;
+    --transition-normal: all 0.2s ease;
+    --transition-slow: all 0.3s ease;
+    
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    
+    --text-xs: 12px;
+    --text-sm: 14px;
+    --text-base: 16px;
+    --text-lg: 18px;
+    --text-xl: 20px;
+    --text-2xl: 24px;
+    --text-3xl: 30px;
+    --text-4xl: 36px;
+    
+    --gray-50: #fafaf9;
+    --gray-100: #f5f5f4;
+    --gray-200: #e7e5e4;
+    --gray-300: #d6d3d1;
+    --gray-400: #a8a29e;
+    --gray-500: #78716c;
+    --gray-600: #57534e;
+    --gray-700: #44403c;
+    --gray-800: #292524;
+    --gray-900: #1c1917;
+}
+
+/* 深色主题 - 温暖夜晚 */
 [data-theme="dark"] {
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
-    --primary-light: #1e3a8a;
-    --primary-dark: #1d4ed8;
+    --primary-color: #fbbf24;
+    --primary-hover: #f59e0b;
+    --primary-light: #451a03;
+    --primary-dark: #d97706;
+    --primary-bg: #292524;
     
-    --bg-primary: #1e293b;
-    --bg-secondary: #0f172a;
-    --bg-tertiary: #334155;
-    --bg-dark: #0f172a;
+    --bg-primary: #1c1917;
+    --bg-secondary: #292524;
+    --bg-tertiary: #44403c;
+    --bg-dark: #0c0a09;
     
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-tertiary: #94a3b8;
-    --text-inverse: #0f172a;
+    --text-primary: #fafaf9;
+    --text-secondary: #d6d3d1;
+    --text-tertiary: #a8a29e;
+    --text-inverse: #1c1917;
     
-    --border-color: #334155;
-    --border-hover: #475569;
-    --border-focus: #3b82f6;
+    --border-color: #44403c;
+    --border-hover: #57534e;
+    --border-focus: #fbbf24;
+    --border-light: #292524;
     
-    --gray-50: #0f172a;
-    --gray-100: #1e293b;
-    --gray-200: #334155;
-    --gray-300: #475569;
-    --gray-400: #64748b;
-    --gray-500: #94a3b8;
-    --gray-600: #cbd5e1;
-    --gray-700: #e2e8f0;
-    --gray-800: #f1f5f9;
-    --gray-900: #f8fafc;
+    --success-color: #34d399;
+    --success-bg: #064e3b;
+    --warning-color: #fbbf24;
+    --warning-bg: #451a03;
+    --error-color: #f87171;
+    --error-bg: #7f1d1d;
+    --info-color: #60a5fa;
+    --info-bg: #1e3a8a;
+    
+    --hover-bg: #292524;
+    --active-bg: #44403c;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    
+    --gray-50: #0c0a09;
+    --gray-100: #1c1917;
+    --gray-200: #292524;
+    --gray-300: #44403c;
+    --gray-400: #57534e;
+    --gray-500: #78716c;
+    --gray-600: #a8a29e;
+    --gray-700: #d6d3d1;
+    --gray-800: #e7e5e4;
+    --gray-900: #fafaf9;
 }
 
 /* 高对比度主题 */
