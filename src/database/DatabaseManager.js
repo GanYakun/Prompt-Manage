@@ -164,13 +164,8 @@ class DatabaseManager {
   }
 
   async transaction(fn) {
-    // Simple transaction implementation
-    try {
-      const result = await fn();
-      return result;
-    } catch (error) {
-      throw error;
-    }
+    // Use the underlying database transaction method
+    return await this.db.transaction(fn);
   }
 
   async close() {

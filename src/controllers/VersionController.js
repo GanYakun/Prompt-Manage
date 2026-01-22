@@ -54,18 +54,24 @@ class VersionController {
         throw new Error('目标版本不存在');
       }
 
+      // 如果没有提供promptId，从版本中获取
+      const actualPromptId = promptId || targetVersion.prompt_id;
+      if (!actualPromptId) {
+        throw new Error('无法确定Prompt ID');
+      }
+
       // 获取当前Prompt
-      const prompt = await this.promptRepository.findById(promptId);
+      const prompt = await this.promptRepository.findById(actualPromptId);
       if (!prompt) {
         throw new Error('Prompt不存在');
       }
 
       // 创建新版本（回滚版本）
       const newVersionNumber = prompt.version_count + 1;
-      const rollbackNote = note || `回滚到版本 ${targetVersion.versionNumber}`;
+      const rollbackNote = note || `回滚到版本 ${targetVersion.version_number}`;
       
       const newVersion = {
-        prompt_id: promptId,
+        prompt_id: actualPromptId,
         content: targetVersion.content,
         note: rollbackNote,
         version_number: newVersionNumber,
@@ -84,7 +90,7 @@ class VersionController {
         version_count: newVersionNumber
       };
 
-      await this.promptRepository.update(promptId, updatedPrompt);
+      await this.promptRepository.update(actualPromptId, updatedPrompt);
 
       return {
         success: true,

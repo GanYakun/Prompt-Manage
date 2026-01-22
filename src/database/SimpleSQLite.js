@@ -371,6 +371,19 @@ class SimpleSQLite {
   close() {
     this.saveDatabase();
   }
+
+  // Transaction support - simple implementation
+  async transaction(fn) {
+    try {
+      const result = await fn();
+      this.saveDatabase(); // Ensure data is saved after transaction
+      return result;
+    } catch (error) {
+      // In a real database, we would rollback here
+      // For this simple implementation, we just re-throw the error
+      throw error;
+    }
+  }
 }
 
 module.exports = SimpleSQLite;

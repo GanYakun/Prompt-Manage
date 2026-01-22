@@ -104,13 +104,23 @@ prompt-version-manager/
 │   │   └── CustomCategoryRepository.js # 自定义分类仓库
 │   └── data/                   # 数据管理
 │       └── DataManager.js      # 数据管理器
-├── renderer/                   # 前端界面
+├── renderer/                   # 前端界面 (Vue3)
 │   ├── index.html              # 主界面
-│   ├── scripts/                # JavaScript文件
-│   │   ├── app.js              # 主应用逻辑
-│   │   ├── api.js              # API接口
-│   │   ├── components.js       # UI组件
-│   │   └── utils.js            # 工具函数
+│   ├── src/                    # Vue3源代码
+│   │   ├── App.vue             # 根组件
+│   │   ├── main.js             # 应用入口
+│   │   ├── components/         # Vue组件
+│   │   │   ├── CategoryPanel.vue
+│   │   │   ├── ListPanel.vue
+│   │   │   ├── DetailPanel.vue
+│   │   │   ├── ModalContainer.vue
+│   │   │   └── modals/         # 模态框组件
+│   │   ├── stores/             # Pinia状态管理
+│   │   │   ├── app.js
+│   │   │   ├── modal.js
+│   │   │   └── notifications.js
+│   │   ├── views/              # 页面组件
+│   │   └── router/             # Vue Router
 │   └── styles/                 # 样式文件
 │       ├── main.css            # 主样式
 │       ├── themes.css          # 主题样式

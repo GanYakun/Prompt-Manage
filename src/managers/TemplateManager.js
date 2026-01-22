@@ -115,6 +115,7 @@ class TemplateManager {
         content: updates.content !== undefined ? updates.content : existingTemplate.content,
         description: updates.description !== undefined ? updates.description.trim() : existingTemplate.description,
         tags: updates.tags !== undefined ? JSON.stringify(updates.tags) : existingTemplate.tags,
+        categories: updates.categories !== undefined ? (updates.categories ? JSON.stringify(updates.categories) : null) : existingTemplate.categories,
         updated_at: now
       };
 

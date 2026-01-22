@@ -2,6 +2,101 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
+contextBridge.exposeInMainWorld('api', {
+  // Check if Electron API is available
+  isElectronAvailable: () => true,
+
+  // Application info
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  getAppPath: (name) => ipcRenderer.invoke('get-app-path', name),
+  getDataPath: () => ipcRenderer.invoke('get-data-path'),
+  openDataFolder: () => ipcRenderer.invoke('open-data-folder'),
+
+  // File dialogs
+  showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),
+  showOpenDialog: (options) => ipcRenderer.invoke('show-open-dialog', options),
+
+  // Prompt management - simplified API
+  createPrompt: (promptData) => {
+    console.log('preload.js createPrompt called with:', promptData);
+    return ipcRenderer.invoke('create-prompt', promptData);
+  },
+  updatePrompt: (promptId, updates, note) => ipcRenderer.invoke('update-prompt', promptId, updates, note),
+  getPrompt: (promptId) => ipcRenderer.invoke('get-prompt', promptId),
+  getAllPrompts: (limit, offset) => ipcRenderer.invoke('get-all-prompts', limit, offset),
+  deletePrompt: (promptId) => ipcRenderer.invoke('delete-prompt', promptId),
+  getPromptsByTag: (tag) => ipcRenderer.invoke('get-prompts-by-tag', tag),
+  getPromptVersions: (promptId) => ipcRenderer.invoke('get-version-history', promptId),
+  restorePromptVersion: (versionId) => ipcRenderer.invoke('rollback-to-version', null, versionId, 'Restored from version'),
+
+  // Template management - simplified API
+  createTemplate: (templateData) => {
+    return ipcRenderer.invoke('create-template', 
+      templateData.name, 
+      templateData.content, 
+      templateData.description, 
+      templateData.tags, 
+      templateData.categories
+    );
+  },
+  updateTemplate: (templateId, updates) => ipcRenderer.invoke('update-template', templateId, updates),
+  getTemplate: (templateId) => ipcRenderer.invoke('get-template', templateId),
+  getAllTemplates: (limit, offset) => ipcRenderer.invoke('get-all-templates', limit, offset),
+  deleteTemplate: (templateId) => ipcRenderer.invoke('delete-template', templateId),
+  getTemplateUsageHistory: (templateId) => {
+    // This would need to be implemented in the backend
+    return Promise.resolve([]);
+  },
+  createPromptFromTemplate: (templateId, customizations) => ipcRenderer.invoke('create-prompt-from-template', templateId, customizations),
+
+  // Search
+  search: (query, options) => ipcRenderer.invoke('search', query, options),
+  advancedSearch: (criteria) => ipcRenderer.invoke('advanced-search', criteria),
+  getSearchSuggestions: (partialQuery, limit) => ipcRenderer.invoke('get-search-suggestions', partialQuery, limit),
+  getPopularSearchTerms: (limit) => ipcRenderer.invoke('get-popular-search-terms', limit),
+  rebuildSearchIndex: () => ipcRenderer.invoke('rebuild-search-index'),
+
+  // Export/Import
+  exportPrompt: (promptId, filePath) => ipcRenderer.invoke('export-prompt', promptId, filePath),
+  exportAll: (filePath) => ipcRenderer.invoke('export-all', filePath),
+  exportTemplates: (filePath) => ipcRenderer.invoke('export-templates', filePath),
+  importData: (filePath, options) => ipcRenderer.invoke('import-data', filePath, options),
+  validateImportFile: (filePath) => ipcRenderer.invoke('validate-import-file', filePath),
+
+  // Statistics and utilities
+  getAppStats: () => ipcRenderer.invoke('get-app-stats'),
+  getAllTags: () => ipcRenderer.invoke('get-all-tags'),
+  performMaintenance: () => ipcRenderer.invoke('perform-maintenance'),
+  getExportFormats: () => ipcRenderer.invoke('get-export-formats'),
+
+  // Custom categories
+  getAllCustomCategories: () => ipcRenderer.invoke('get-all-custom-categories'),
+  createCustomCategoryGroup: (groupData) => ipcRenderer.invoke('create-custom-category-group', groupData),
+  addCategoryToGroup: (groupType, categoryData) => ipcRenderer.invoke('add-category-to-group', groupType, categoryData),
+  updateCustomCategory: (id, updates) => ipcRenderer.invoke('update-custom-category', id, updates),
+  deleteCustomCategory: (id) => ipcRenderer.invoke('delete-custom-category', id),
+  deleteCustomCategoryGroup: (groupType) => ipcRenderer.invoke('delete-custom-category-group', groupType),
+  getCustomCategoryGroupStatistics: () => ipcRenderer.invoke('get-custom-category-group-statistics'),
+  getCustomCategoryIconOptions: () => ipcRenderer.invoke('get-custom-category-icon-options'),
+  getCustomCategoryColorOptions: () => ipcRenderer.invoke('get-custom-category-color-options'),
+
+  // Menu event listeners
+  onMenuNewPrompt: (callback) => ipcRenderer.on('menu-new-prompt', callback),
+  onMenuNewTemplate: (callback) => ipcRenderer.on('menu-new-template', callback),
+  onMenuExportAll: (callback) => ipcRenderer.on('menu-export-all', callback),
+  onMenuImport: (callback) => ipcRenderer.on('menu-import', callback),
+  onMenuSearch: (callback) => ipcRenderer.on('menu-search', callback),
+  onMenuAdvancedSearch: (callback) => ipcRenderer.on('menu-advanced-search', callback),
+  onMenuRebuildIndex: (callback) => ipcRenderer.on('menu-rebuild-index', callback),
+  onMenuMaintenance: (callback) => ipcRenderer.on('menu-maintenance', callback),
+  onMenuStats: (callback) => ipcRenderer.on('menu-stats', callback),
+  onMenuAbout: (callback) => ipcRenderer.on('menu-about', callback),
+
+  // Remove listeners
+  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+});
+
+// Also expose the old API for backward compatibility
 contextBridge.exposeInMainWorld('electronAPI', {
   // Application info
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),

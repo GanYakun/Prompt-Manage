@@ -46,49 +46,30 @@ class PromptManager {
   async createPrompt(title, content, tags = [], note = 'Initial version', categories = null) {
     await this.initialize();
     
-    const promptId = generateUUID();
-    const versionId = generateUUID();
-    const now = new Date().toISOString();
+    console.log('PromptManager.createPrompt called with:', { title, content, tags, note, categories });
+    
+    // 参数验证
+    if (!title || typeof title !== 'string') {
+      throw new Error('Title is required and must be a string');
+    }
+    if (!content || typeof content !== 'string') {
+      throw new Error('Content is required and must be a string');
+    }
     
     try {
-      // Create the prompt record
-      const prompt = {
-        id: promptId,
+      // 使用PromptRepository的createPrompt方法
+      const result = await this.promptRepository.createPrompt({
         title: title.trim(),
         content: content,
-        tags: Array.isArray(tags) ? JSON.stringify(tags) : JSON.stringify([]),
-        categories: categories ? JSON.stringify(categories) : null,
-        created_at: now,
-        updated_at: now,
-        current_version_id: versionId,
-        version_count: 1
-      };
-
-      await this.promptRepository.create(prompt);
-
-      // Create the initial version
-      const version = {
-        id: versionId,
-        prompt_id: promptId,
-        content: content,
-        note: note || 'Initial version',
-        created_at: now,
-        version_number: 1,
-        is_rollback: false,
-        source_version_id: null
-      };
-
-      await this.versionRepository.create(version);
+        tags: Array.isArray(tags) ? tags : [],
+        categories: categories
+      });
 
       // Update search index
-      await this.updateSearchIndex(promptId, title, content, tags);
+      await this.updateSearchIndex(result.id, title, content, tags);
 
-      return {
-        ...prompt,
-        tags: safeParseJSON(prompt.tags),
-        categories: safeParseJSON(prompt.categories, null),
-        current_version: version
-      };
+      console.log('Prompt created successfully:', result);
+      return result;
     } catch (error) {
       console.error('Failed to create prompt:', error);
       throw new Error(`Failed to create prompt: ${error.message}`);
@@ -145,6 +126,10 @@ class PromptManager {
       
       if (updates.tags !== undefined) {
         updateData.tags = JSON.stringify(updates.tags);
+      }
+      
+      if (updates.categories !== undefined) {
+        updateData.categories = updates.categories ? JSON.stringify(updates.categories) : null;
       }
 
       if (contentChanged) {

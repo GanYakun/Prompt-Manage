@@ -36,6 +36,7 @@ class AppController {
 
   // Prompt相关方法
   async createPrompt(title, content, tags = [], note = '初始版本', categories = null) {
+    console.log('AppController.createPrompt called with:', { title, content, tags, note, categories });
     await this.initialize();
     return this.promptManager.createPrompt(title, content, tags, note, categories);
   }

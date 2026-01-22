@@ -18,6 +18,7 @@ class PromptRepository extends BaseRepository {
         title: data.title,
         content: data.content,
         tags: JSON.stringify(data.tags || [], null, 0), // Ensure proper JSON encoding
+        categories: data.categories ? JSON.stringify(data.categories, null, 0) : null, // Add categories support
         created_at: now,
         updated_at: now,
         current_version_id: versionId,
@@ -31,7 +32,7 @@ class PromptRepository extends BaseRepository {
         id: versionId,
         prompt_id: promptId,
         content: data.content,
-        note: 'Initial version',
+        note: data.note || 'Initial version', // Use provided note
         created_at: now,
         version_number: 1,
         is_rollback: false

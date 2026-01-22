@@ -326,7 +326,9 @@ body {
 }
 
 .item-list {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
 }
 
 .item-list.active {

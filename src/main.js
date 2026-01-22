@@ -13,22 +13,37 @@ class PromptVersionManagerApp {
 
   setupEventHandlers() {
     app.whenReady().then(() => {
-      this.initializeDataDirectory();
-      this.createMainWindow();
-      this.setupMenu();
-      this.setupIpcHandlers();
+      try {
+        this.initializeDataDirectory();
+        this.createMainWindow();
+        this.setupMenu();
+        this.setupIpcHandlers();
+      } catch (error) {
+        console.error('Error during app initialization:', error);
+      }
 
       app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
           this.createMainWindow();
         }
       });
+    }).catch(error => {
+      console.error('Error in app.whenReady:', error);
     });
 
     app.on('window-all-closed', () => {
       if (process.platform !== 'darwin') {
         app.quit();
       }
+    });
+
+    // Add global error handlers
+    process.on('uncaughtException', (error) => {
+      console.error('Uncaught Exception:', error);
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
     });
   }
 
@@ -61,16 +76,54 @@ class PromptVersionManagerApp {
     });
 
     // Load the application
-    this.mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+    const isDev = process.argv.includes('--dev');
+    console.log('isDev:', isDev);
+    if (isDev) {
+      // Development mode - load from Vite dev server
+      console.log('Loading from Vite dev server: http://localhost:5175');
+      this.mainWindow.loadURL('http://localhost:5175');
+    } else {
+      // Production mode - load from built files
+      console.log('Loading from built files');
+      this.mainWindow.loadFile(join(__dirname, '../dist/index.html'));
+    }
 
     // Show window when ready
     this.mainWindow.once('ready-to-show', () => {
+      console.log('Window ready to show');
       this.mainWindow.show();
       
       // Open dev tools in development
-      // if (process.argv.includes('--dev')) {
-      //   this.mainWindow.webContents.openDevTools();
-      // }
+      if (isDev) {
+        this.mainWindow.webContents.openDevTools();
+      }
+    });
+
+    // Add loading event handlers
+    this.mainWindow.webContents.on('did-start-loading', () => {
+      console.log('Started loading page');
+    });
+
+    this.mainWindow.webContents.on('did-finish-load', () => {
+      console.log('Finished loading page');
+    });
+
+    this.mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('Failed to load page:', errorCode, errorDescription, validatedURL);
+    });
+
+    // Listen to console messages from renderer process
+    this.mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      console.log(`[Renderer ${level}]:`, message);
+    });
+
+    // Add error handling
+    this.mainWindow.webContents.on('crashed', (event) => {
+      console.error('Renderer process crashed:', event);
+    });
+
+    this.mainWindow.webContents.on('unresponsive', () => {
+      console.error('Renderer process became unresponsive');
     });
 
     this.mainWindow.on('closed', () => {
@@ -237,10 +290,25 @@ class PromptVersionManagerApp {
     });
 
     // Prompt management
-    ipcMain.handle('create-prompt', async (event, title, content, tags, note, categories) => {
+    ipcMain.handle('create-prompt', async (event, promptData) => {
       try {
-        return await this.appController.createPrompt(title, content, tags, note, categories);
+        console.log('IPC create-prompt called with:', promptData);
+        // Handle both object and individual parameters for backward compatibility
+        if (typeof promptData === 'object' && promptData !== null) {
+          return await this.appController.createPrompt(
+            promptData.title, 
+            promptData.content, 
+            promptData.tags, 
+            promptData.note, 
+            promptData.categories
+          );
+        } else {
+          // Legacy individual parameters
+          const [title, content, tags, note, categories] = arguments.slice(1);
+          return await this.appController.createPrompt(title, content, tags, note, categories);
+        }
       } catch (error) {
+        console.error('IPC create-prompt error:', error);
         throw error;
       }
     });
