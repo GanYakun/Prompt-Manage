@@ -69,8 +69,10 @@ class PromptVersionManagerApp {
         nodeIntegration: false,
         contextIsolation: true,
         preload: join(__dirname, 'preload.js'),
+        devTools: false, // 禁用开发者工具
       },
       titleBarStyle: 'default',
+      autoHideMenuBar: true, // 隐藏菜单栏
       show: false,
       icon: join(__dirname, '../APP-icon.png'),
     });
@@ -93,10 +95,7 @@ class PromptVersionManagerApp {
       console.log('Window ready to show');
       this.mainWindow.show();
       
-      // Open dev tools in development
-      if (isDev) {
-        this.mainWindow.webContents.openDevTools();
-      }
+      // 不再自动打开开发者工具
     });
 
     // Add loading event handlers
@@ -192,7 +191,6 @@ class PromptVersionManagerApp {
         submenu: [
           { role: 'reload', label: '重新加载' },
           { role: 'forceReload', label: '强制重新加载' },
-          { role: 'toggleDevTools', label: '开发者工具' },
           { type: 'separator' },
           { role: 'resetZoom', label: '重置缩放' },
           { role: 'zoomIn', label: '放大' },
