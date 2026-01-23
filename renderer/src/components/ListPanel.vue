@@ -64,7 +64,7 @@
       <!-- Prompt列表 -->
       <div 
         v-show="appStore.currentTab === 'prompts'"
-        class="item-list"
+        class="prompt-list"
         :class="{ 
           'grid-view': appStore.currentViewMode === 'grid',
           'bulk-selection-mode': appStore.bulkSelectionMode
@@ -102,7 +102,7 @@
       <!-- 模板列表 -->
       <div 
         v-show="appStore.currentTab === 'templates'"
-        class="item-list"
+        class="template-list"
         :class="{ 
           'grid-view': appStore.currentViewMode === 'grid',
           'bulk-selection-mode': appStore.bulkSelectionMode
@@ -145,12 +145,14 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '../stores/app'
 import { useCategoriesStore } from '../stores/categories'
 import { useModalStore } from '../stores/modal'
+import { useNotificationsStore } from '../stores/notifications'
 import PromptItem from './PromptItem.vue'
 import TemplateItem from './TemplateItem.vue'
 
 const appStore = useAppStore()
 const categoriesStore = useCategoriesStore()
 const modalStore = useModalStore()
+const notificationsStore = useNotificationsStore()
 
 const showSortDropdown = ref(false)
 

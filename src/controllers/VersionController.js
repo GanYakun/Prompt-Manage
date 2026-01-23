@@ -30,6 +30,22 @@ class VersionController {
     }
   }
 
+  // 根据ID获取版本
+  async getVersionById(versionId) {
+    await this.initialize();
+    
+    try {
+      const version = await this.versionRepository.findById(versionId);
+      if (!version) {
+        throw new Error('版本不存在');
+      }
+      return version;
+    } catch (error) {
+      console.error('Failed to get version by ID:', error);
+      throw new Error(`获取版本失败: ${error.message}`);
+    }
+  }
+
   // 比较两个版本
   async compareVersions(versionId1, versionId2) {
     await this.initialize();

@@ -27,7 +27,10 @@ contextBridge.exposeInMainWorld('api', {
   deletePrompt: (promptId) => ipcRenderer.invoke('delete-prompt', promptId),
   getPromptsByTag: (tag) => ipcRenderer.invoke('get-prompts-by-tag', tag),
   getPromptVersions: (promptId) => ipcRenderer.invoke('get-version-history', promptId),
-  restorePromptVersion: (versionId) => ipcRenderer.invoke('rollback-to-version', null, versionId, 'Restored from version'),
+  restorePromptVersion: (versionId) => ipcRenderer.invoke('get-version-by-id', versionId).then(version => {
+    if (!version) throw new Error('版本不存在');
+    return ipcRenderer.invoke('rollback-to-version', version.prompt_id, versionId, 'Restored from version');
+  }),
 
   // Template management - simplified API
   createTemplate: (templateData) => {

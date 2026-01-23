@@ -315,8 +315,11 @@ class PromptVersionManagerApp {
 
     ipcMain.handle('update-prompt', async (event, promptId, updates, note) => {
       try {
-        return await this.appController.updatePrompt(promptId, updates, note);
+        // Ensure updates object is serializable
+        const cleanUpdates = JSON.parse(JSON.stringify(updates));
+        return await this.appController.updatePrompt(promptId, cleanUpdates, note);
       } catch (error) {
+        console.error('Update prompt error:', error);
         throw error;
       }
     });
@@ -357,6 +360,14 @@ class PromptVersionManagerApp {
     ipcMain.handle('get-version-history', async (event, promptId) => {
       try {
         return await this.appController.getVersionHistory(promptId);
+      } catch (error) {
+        throw error;
+      }
+    });
+
+    ipcMain.handle('get-version-by-id', async (event, versionId) => {
+      try {
+        return await this.appController.getVersionById(versionId);
       } catch (error) {
         throw error;
       }

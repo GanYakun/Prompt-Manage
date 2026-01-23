@@ -1,43 +1,77 @@
 <template>
   <div 
-    class="list-item"
+    class="prompt-card"
     :class="{ 
       active: selected,
-      selectable: selectable
+      selectable: selectable,
+      [promptStatus]: true
     }"
     @click="handleClick"
   >
-    <div class="item-header">
-      <div class="item-title">{{ prompt.title }}</div>
-      <div class="item-actions" v-show="!selectable">
-        <button class="icon-btn" @click.stop="showVersionHistory" title="版本历史">📜</button>
-        <button class="icon-btn" @click.stop="editPrompt" title="编辑">✏️</button>
-        <button class="icon-btn" @click.stop="copyPrompt" title="复制">📋</button>
-        <button class="icon-btn" @click.stop="saveAsTemplate" title="存为模板">📄</button>
-        <button class="icon-btn" @click.stop="deletePrompt" title="删除">🗑️</button>
+    <!-- 卡片头部 -->
+    <div class="card-header">
+      <div class="card-title-section">
+        <h3 class="card-title">{{ prompt.title }}</h3>
+        <div class="card-status-badge" :class="promptStatus">
+          {{ statusText }}
+        </div>
+      </div>
+      <div class="card-actions" v-show="!selectable">
+        <button class="action-btn" @click.stop="showVersionHistory" title="版本历史">📜</button>
+        <button class="action-btn" @click.stop="editPrompt" title="编辑">✏️</button>
+        <button class="action-btn" @click.stop="copyPrompt" title="复制">📋</button>
+        <button class="action-btn" @click.stop="saveAsTemplate" title="存为模板">📄</button>
+        <button class="action-btn" @click.stop="deletePrompt" title="删除">🗑️</button>
       </div>
     </div>
     
-    <div class="item-preview">{{ truncatedContent }}</div>
+    <!-- 情绪化标签 -->
+    <div class="emotion-tags" v-if="emotionTags.length > 0">
+      <span 
+        v-for="tag in emotionTags" 
+        :key="tag.text"
+        class="emotion-tag"
+        :title="tag.description"
+      >
+        {{ tag.emoji }} {{ tag.text }}
+      </span>
+    </div>
     
-    <div class="item-meta">
-      <div class="item-stats">
-        <div class="item-date">{{ formatDate(prompt.updated_at) }}</div>
-        <div class="item-versions">{{ prompt.version_count || 1 }} 个版本</div>
-        <div class="item-usage">使用 {{ prompt.usage_count || 0 }} 次</div>
+    <!-- 内容预览 -->
+    <div class="card-content">
+      <p class="content-preview">{{ truncatedContent }}</p>
+    </div>
+    
+    <!-- 卡片底部信息 -->
+    <div class="card-footer">
+      <div class="usage-info">
+        <div class="usage-frequency">
+          <span class="usage-icon">🔥</span>
+          <span class="usage-text">{{ usageFrequencyText }}</span>
+        </div>
+        <div class="last-used">
+          <span class="time-icon">⏰</span>
+          <span class="time-text">{{ formatDate(prompt.updated_at) }}</span>
+        </div>
+      </div>
+      
+      <div class="card-meta">
+        <span class="version-count">{{ prompt.version_count || 1 }} 版本</span>
       </div>
     </div>
     
-    <div class="tags" v-if="prompt.tags && prompt.tags.length > 0">
+    <!-- 原有标签（保持兼容性） -->
+    <div class="original-tags" v-if="prompt.tags && prompt.tags.length > 0">
       <span 
         v-for="(tag, index) in visibleTags" 
         :key="tag"
-        class="tag"
+        class="original-tag"
         :class="{ primary: index === 0 }"
       >{{ tag }}</span>
       <span v-if="hiddenTagsCount > 0" class="tag-more">+{{ hiddenTagsCount }}</span>
     </div>
     
+    <!-- 分类标签 -->
     <div class="category-tags" v-if="categoryTags.length > 0">
       <span 
         v-for="tag in categoryTags" 
@@ -79,7 +113,7 @@ const notificationsStore = useNotificationsStore()
 const appStore = useAppStore()
 
 const truncatedContent = computed(() => {
-  const maxLength = 150
+  const maxLength = 120
   if (props.prompt.content.length <= maxLength) {
     return props.prompt.content
   }
@@ -113,6 +147,92 @@ const categoryTags = computed(() => {
   })
   return tags
 })
+
+// 计算 Prompt 状态
+const promptStatus = computed(() => {
+  const usageCount = props.prompt.usage_count || 0
+  const versionCount = props.prompt.version_count || 1
+  const daysSinceCreated = getDaysSinceCreated()
+  
+  if (daysSinceCreated <= 7) {
+    return 'new'
+  } else if (usageCount >= 10 || versionCount >= 5) {
+    return 'mature'
+  } else if (usageCount >= 3) {
+    return 'frequent'
+  }
+  return 'new'
+})
+
+const statusText = computed(() => {
+  switch (promptStatus.value) {
+    case 'new': return '新'
+    case 'frequent': return '常用'
+    case 'mature': return '成熟'
+    default: return '新'
+  }
+})
+
+// 使用频率文本
+const usageFrequencyText = computed(() => {
+  const usageCount = props.prompt.usage_count || 0
+  if (usageCount === 0) return '未使用'
+  if (usageCount === 1) return '使用 1 次'
+  if (usageCount < 5) return `使用 ${usageCount} 次`
+  if (usageCount < 10) return '经常使用'
+  return '高频使用'
+})
+
+// 情绪化标签
+const emotionTags = computed(() => {
+  const tags = []
+  const content = props.prompt.content.toLowerCase()
+  const title = props.prompt.title.toLowerCase()
+  const usageCount = props.prompt.usage_count || 0
+  
+  // 基于内容和标题分析情绪标签
+  if (content.includes('思考') || content.includes('分析') || content.includes('思维') || title.includes('思考')) {
+    tags.push({ emoji: '🧠', text: '思维放大器', description: '帮助深度思考和分析' })
+  }
+  
+  if (content.includes('写作') || content.includes('文章') || content.includes('写') || title.includes('写作')) {
+    tags.push({ emoji: '✍️', text: '写作救命', description: '提升写作效率和质量' })
+  }
+  
+  if (content.includes('创意') || content.includes('创新') || content.includes('想法') || title.includes('创意')) {
+    tags.push({ emoji: '💡', text: '灵感火花', description: '激发创意和想象力' })
+  }
+  
+  if (content.includes('学习') || content.includes('教学') || content.includes('解释') || title.includes('学习')) {
+    tags.push({ emoji: '📚', text: '学习助手', description: '提升学习和理解效果' })
+  }
+  
+  if (content.includes('解决') || content.includes('问题') || content.includes('方案') || title.includes('解决')) {
+    tags.push({ emoji: '🔧', text: '问题终结者', description: '快速解决各种问题' })
+  }
+  
+  if (content.includes('效率') || content.includes('快速') || content.includes('自动') || usageCount >= 10) {
+    tags.push({ emoji: '⚡', text: '效率神器', description: '大幅提升工作效率' })
+  }
+  
+  if (content.includes('沟通') || content.includes('交流') || content.includes('对话') || title.includes('沟通')) {
+    tags.push({ emoji: '💬', text: '沟通桥梁', description: '改善沟通和表达' })
+  }
+  
+  if (content.includes('计划') || content.includes('规划') || content.includes('安排') || title.includes('计划')) {
+    tags.push({ emoji: '📋', text: '规划大师', description: '帮助制定和执行计划' })
+  }
+  
+  // 限制显示数量
+  return tags.slice(0, 2)
+})
+
+const getDaysSinceCreated = () => {
+  const created = new Date(props.prompt.created_at)
+  const now = new Date()
+  const diffTime = Math.abs(now - created)
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)

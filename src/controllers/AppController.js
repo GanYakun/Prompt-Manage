@@ -77,6 +77,11 @@ class AppController {
     return this.versionController.getVersionHistory(promptId);
   }
 
+  async getVersionById(versionId) {
+    await this.initialize();
+    return this.versionController.getVersionById(versionId);
+  }
+
   async compareVersions(versionId1, versionId2) {
     await this.initialize();
     return this.versionController.compareVersions(versionId1, versionId2);
