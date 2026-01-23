@@ -49,6 +49,7 @@ class PromptVersionManagerApp {
       },
       titleBarStyle: 'default',
       show: false, // Don't show until ready
+      icon: join(__dirname, '../APP-icon.png'),
     });
 
     // Load the application

@@ -1,0 +1,11 @@
+directories:
+  output: dist-electron
+  buildResources: build
+appId: com.promptmanager.app
+productName: 我的灵感笔记本
+files:
+  - filter:
+      - src/**/*
+      - dist/**/*
+      - node_modules/**/*
+electronVersion: 28.3.3

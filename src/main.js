@@ -72,7 +72,7 @@ class PromptVersionManagerApp {
       },
       titleBarStyle: 'default',
       show: false,
-      icon: process.platform === 'win32' ? join(__dirname, '../assets/icon.ico') : undefined,
+      icon: join(__dirname, '../APP-icon.png'),
     });
 
     // Load the application

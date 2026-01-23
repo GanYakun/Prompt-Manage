@@ -48,6 +48,16 @@
       "src/**/*",
       "dist/**/*",
       "node_modules/**/*"
-    ]
+    ],
+    "icon": "APP-icon.png",
+    "win": {
+      "icon": "APP-icon.png"
+    },
+    "mac": {
+      "icon": "APP-icon.png"
+    },
+    "linux": {
+      "icon": "APP-icon.png"
+    }
   }
 }
