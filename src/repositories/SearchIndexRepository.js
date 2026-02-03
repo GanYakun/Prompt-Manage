@@ -82,8 +82,9 @@ class SearchIndexRepository extends BaseRepository {
     const entityTypes = options.entityTypes || ['prompt', 'version', 'template'];
     const includeHistory = options.includeHistory !== false;
 
-    let sql = `SELECT * FROM ${this.tableName}`;
+    let sql = `SELECT entity_id, entity_type, content, title, tags FROM ${this.tableName}`;
     const conditions = [];
+    const params = [];
     
     if (!includeHistory) {
       conditions.push("entity_type != 'version'");
@@ -92,13 +93,26 @@ class SearchIndexRepository extends BaseRepository {
     if (entityTypes.length < 3) {
       const typeConditions = entityTypes.map(() => 'entity_type = ?').join(' OR ');
       conditions.push(`(${typeConditions})`);
+      params.push(...entityTypes);
+    }
+
+    if (keywords.length > 0) {
+      const keywordConditions = keywords.map(() => `(
+        LOWER(content) LIKE ?
+        OR LOWER(COALESCE(title, '')) LIKE ?
+        OR LOWER(COALESCE(tags, '')) LIKE ?
+      )`).join(' OR ');
+      conditions.push(`(${keywordConditions})`);
+      keywords.forEach(keyword => {
+        const likeValue = `%${keyword}%`;
+        params.push(likeValue, likeValue, likeValue);
+      });
     }
 
     if (conditions.length > 0) {
       sql += ' WHERE ' + conditions.join(' AND ');
     }
 
-    const params = entityTypes.length < 3 ? entityTypes : [];
     const allIndexes = await this.db.all(sql, params);
     
     const results = [];
@@ -257,6 +271,16 @@ class SearchIndexRepository extends BaseRepository {
     });
     
     return result;
+  }
+
+  async getSuggestionCandidates() {
+    const sql = `SELECT title, tags FROM ${this.tableName}`;
+    return await this.db.all(sql);
+  }
+
+  async getPopularTermCandidates() {
+    const sql = `SELECT title, tags, content FROM ${this.tableName}`;
+    return await this.db.all(sql);
   }
 
   // Format index data
