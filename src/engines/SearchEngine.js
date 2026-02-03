@@ -141,8 +141,8 @@ class SearchEngine {
         return [];
       }
 
-      // 获取所有索引数据
-      const allIndexes = await this.searchIndexRepository.findAll();
+      // 获取必要索引字段
+      const allIndexes = await this.searchIndexRepository.getSuggestionCandidates();
       const suggestions = new Set();
 
       // 从标题中提取建议
@@ -183,7 +183,7 @@ class SearchEngine {
     await this.initialize();
     
     try {
-      const allIndexes = await this.searchIndexRepository.findAll();
+      const allIndexes = await this.searchIndexRepository.getPopularTermCandidates();
       const termFrequency = {};
 
       // 统计词频
